@@ -40,6 +40,11 @@ Recebe os dados de todos os sensores e armazena na base de dados.
 
 **Método:** POST  
 **Body:** JSON com a estrutura exemplar acima
+### POST https://api-pap-dqtp.onrender.com/api/dados
+Recebe os dados de todos os sensores e armazena na base de dados.
+
+**Método:** POST  
+**Body:** JSON com a estrutura exemplar acima
 
 **Resposta (201):**
 ```json
@@ -51,7 +56,12 @@ Recebe os dados de todos os sensores e armazena na base de dados.
 
 ---
 
-### GET http://127.0.0.1.5000/api/dados_sensores
+### GET https://api-pap-dqtp.onrender.com/api/dados_sensores
+Retorna os últimos 10 registros de todos os sensores.
+
+**Método:** GET  
+**Resposta (200):** Array com todos os dados combinados
+### GET https://api-pap-dqtp.onrender.com/api/dados_sensores
 Retorna os últimos 10 registros de todos os sensores.
 
 **Método:** GET  
@@ -59,7 +69,12 @@ Retorna os últimos 10 registros de todos os sensores.
 
 ---
 
-### GET http://127.0.0.1.5000/api/gps
+### GET https://api-pap-dqtp.onrender.com/api/gps
+Retorna o registro mais recente do sensor GPS.
+
+**Método:** GET  
+**Resposta (200):**
+### GET https://api-pap-dqtp.onrender.com/api/gps
 Retorna o registro mais recente do sensor GPS.
 
 **Método:** GET  
@@ -78,7 +93,13 @@ Retorna o registro mais recente do sensor GPS.
 
 ---
 
-### GET http://127.0.0.1.5000/api/bme280
+### GET https://api-pap-dqtp.onrender.com
+/api/bme280
+Retorna o registro mais recente do sensor BME280 (temperatura, humidade e pressão do ar).
+
+**Método:** GET  
+**Resposta (200):**
+### GET https://api-pap-dqtp.onrender.com/api/bme280
 Retorna o registro mais recente do sensor BME280 (temperatura, humidade e pressão do ar).
 
 **Método:** GET  
@@ -98,7 +119,12 @@ Retorna o registro mais recente do sensor BME280 (temperatura, humidade e press�
 
 ---
 
-### GET http://127.0.0.1.5000/api/solo
+### GET https://api-pap-dqtp.onrender.com/api/solo
+Retorna o registro mais recente de humidade do solo.
+
+**Método:** GET  
+**Resposta (200):**
+### GET https://api-pap-dqtp.onrender.com/api/solo
 Retorna o registro mais recente de humidade do solo.
 
 **Método:** GET  
@@ -116,7 +142,12 @@ Retorna o registro mais recente de humidade do solo.
 
 ---
 
-### GET http://127.0.0.1.5000/api/vibracao
+### GET https://api-pap-dqtp.onrender.com/api/vibracao
+Retorna o registro mais recente de vibração.
+
+**Método:** GET  
+**Resposta (200):**
+### GET https://api-pap-dqtp.onrender.com/api/vibracao
 Retorna o registro mais recente de vibração.
 
 **Método:** GET  
@@ -134,7 +165,12 @@ Retorna o registro mais recente de vibração.
 
 ---
 
-### GET http://127.0.0.1.5000/api/visao
+### GET https://api-pap-dqtp.onrender.com/api/visao
+Retorna o registro mais recente de detecção de pragas.
+
+**Método:** GET  
+**Resposta (200):**
+### GET https://api-pap-dqtp.onrender.com/api/visao
 Retorna o registro mais recente de detecção de pragas.
 
 **Método:** GET  

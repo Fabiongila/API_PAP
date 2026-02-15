@@ -32,7 +32,7 @@ def receber_dados():
 
     db.session.add(record)
     db.session.commit()
-
+    print("API is running...")
     return jsonify({
         "status": "sucesso",
         'mensagems': 'API is running',

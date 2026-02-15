@@ -7,7 +7,9 @@ API que recebe dados de sensores e ESP32-CAM
 
 Estrutura exemplar dos dados:
 
-{
+": {
+    "detecao_praga": true,
+    "tip{
   "device_id": "SENSOR_001",
   "timestamp": "2026-02-14T10:30:45.123456",
   "gps": {
@@ -25,9 +27,7 @@ Estrutura exemplar dos dados:
   "vibracao": {
     "detectada": false
   },
-  "visao": {
-    "detecao_praga": true,
-    "tipo_praga": "Afídeo",
+  "visaoo_praga": "Afídeo",
     "confianca": 0.92
   }
 }

@@ -23,7 +23,7 @@ def receber_dados():
         pressao_ar=dados['bme280']['pressao'],
 
         humidade_solo=dados['solo']['humidade'],
-        vibracao=dados['vibracao']['detejctada'],
+        vibracao=dados['vibracao']['detectada'],
 
         detecao_praga=dados['visao']['detecao_praga'],
         tipo_praga=dados['visao']['tipo_praga'],

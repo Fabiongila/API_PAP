@@ -1,6 +1,7 @@
 from flask import Flask
 from models import db
 from routes import api_routes
+from flask_cors import CORS
 import os
 
 

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AgroCaua Dashboard{% endblock %}</title>
+    
+    <!-- Preconnect to CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900" x-data="{ appReady: false }" @alpine:init="appReady = true">
+    <!-- Sidebar Navigation -->
+    {% include 'components/sidebar.html' %}
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+        
+        <!-- Top Bar -->
+        <div class="bg-white border-b border-gray-200 sticky top-0 z-20 -mx-6 px-6 py-2">
+            <!-- Title and Actions in Single Row -->
+            <div class="flex items-center justify-between gap-4">
+                    <!-- Left: Title and Icon -->
+                    <div class="flex items-center gap-3 min-w-0">
+                        {% block page_icon %}<i class="icon-layout-dashboard text-green-600 text-2xl flex-shrink-0"></i>{% endblock %}
+                        <div class="min-w-0">
+                            <h2 class="text-2xl font-bold text-gray-900 truncate">{% block page_title %}Dashboard{% endblock %}</h2>
+                            <p class="text-xs text-gray-500 mt-0.5 truncate">{% block page_subtitle %}Visão geral dos sensores{% endblock %}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Center: Search -->
+                    <div class="flex items-center flex-1 min-w-0">
+                        <!-- Search Bar -->
+                        <div class="relative flex-1 max-w-sm">
+                            <input 
+                                type="text" 
+                                id="topbarSearch"
+                                placeholder="Pesquisar..." 
+                                class="w-full bg-gray-100 rounded-lg px-4 py-2.5 pl-10 text-sm font-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all duration-200"
+                            >
+                            <i class="icon-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Notifications and User -->
+                    <div class="flex items-center gap-2">
+                        <!-- Notifications -->
+                        <button class="relative p-2.5 hover:bg-gray-100 rounded-lg transition-colors duration-200" title="Notificações">
+                            <i class="icon-bell text-gray-600 text-lg"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        </button>
+                        
+                        <!-- User Profile Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button 
+                                @click="open = !open"
+                                class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                                title="Menu do Utilizador"
+                            >
+                                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-green-500 hover:border-green-600 transition-colors">
+                                    <i class="icon-user text-green-600 text-sm"></i>
+                                </div>
+                                <span class="hidden md:inline text-sm font-500 text-gray-700 whitespace-nowrap max-w-32 truncate" id="topbarUserName">Utilizador</span>
+                            </button>
+                            
+                            <!-- User Dropdown Menu -->
+                            <div 
+                                x-show="open" 
+                                @click.away="open = false"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="dropdown-menu right-0 z-50"
+                                style="display: none; position: absolute; top: calc(100% + 0.5rem);"
+                            >
+                                <!-- User Info -->
+                                <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                                    <p class="text-sm font-semibold text-gray-900" id="userName">Utilizador</p>
+                                    <p class="text-xs text-gray-500 truncate" id="userEmail">user@example.com</p>
+                                </div>
+                                
+                                <!-- Menu Items -->
+                                <nav class="py-1">
+                                    <a href="/dashboard/config" class="dropdown-item">
+                                        <i class="icon-settings text-lg"></i>
+                                        <span>Configurações</span>
+                                    </a>
+                                    
+                                    <a href="#" class="dropdown-item">
+                                        <i class="icon-user text-lg"></i>
+                                        <span>Meu Perfil</span>
+                                    </a>
+                                    
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    
+                                    <button onclick="handleAccountDelete()" class="dropdown-item danger w-full text-left">
+                                        <i class="icon-trash-2 text-lg"></i>
+                                        <span>Eliminar Conta</span>
+                                    </button>
+                                    
+                                    <button onclick="handleLogout()" class="dropdown-item w-full text-left">
+                                        <i class="icon-log-out text-lg"></i>
+                                        <span>Terminar Sessão</span>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+        </div>
+        
+        <!-- Page Content -->
+        <main class="px-6 pt-6 pb-6 fade-in">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Footer -->
+        <footer class="py-8 px-6 text-center text-gray-500 text-sm">
+            <p>&copy; 2026 AgroCaua - Sistema de Monitoramento Agrícola Inteligente</p>
+        </footer>
+    </div>
+    
+    <!-- Responsive Styles -->
+    <style>
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+    
+    <!-- Global Scripts -->
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/formatters.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    
+    <!-- Authentication Check -->
+    <script>
+        // Check if user is authenticated
+        function checkAuthentication() {
+            const publicPages = ['/login', '/register'];
+            const currentPath = window.location.pathname;
+            const token = getToken();
+            
+            if (!token && !publicPages.includes(currentPath)) {
+                // Redirect to login if no token
+                window.location.href = '/login';
+            }
+        }
+        
+        // Run check on page load
+        document.addEventListener('DOMContentLoaded', checkAuthentication);
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+    
+    <!-- Topbar Scripts -->
+    <script>
+        // Handle logout
+        function handleLogout() {
+            if (confirm('Tem a certeza que deseja terminar a sessão?')) {
+                try {
+                    clearToken();
+                    showSuccess('Sessão terminada com sucesso');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 800);
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    showError('Erro ao terminar sessão. Tente novamente.');
+                }
+            }
+        }
+
+        // Handle account delete
+        async function handleAccountDelete() {
+            if (confirm('⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL.\n\nTem a certeza que deseja eliminar a sua conta e todos os dados?')) {
+                try {
+                    const response = await API.deleteAccount();
+                    if (response.ok) {
+                        clearToken();
+                        showSuccess('Conta eliminada com sucesso');
+                        setTimeout(() => {
+                            window.location.href = '/register';
+                        }, 1200);
+                    } else {
+                        const error = await response.json();
+                        showError(error.mensagem || 'Erro ao eliminar conta');
+                    }
+                } catch (error) {
+                    console.error('Delete account error:', error);
+                    showError('Erro ao eliminar conta. Tente novamente.');
+                }
+            }
+        }
+
+        // Load user information from token on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const token = getToken();
+                if (token) {
+                    // Try to decode and display user info
+                    const userData = JSON.parse(atob(token.split('.')[1]));
+                    if (userData.nome) {
+                        document.getElementById('userName').textContent = userData.nome;
+                        document.getElementById('topbarUserName').textContent = userData.nome;
+                    }
+                    if (userData.email) {
+                        document.getElementById('userEmail').textContent = userData.email;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not load user info from token');
+            }
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('topbarSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                console.log('Search:', searchTerm);
+                // Implementar lógica de pesquisa conforme necessário
+            });
+        }
+    </script>
+    
+    <!-- Global Cleanup Handler -->
+    <script>
+        // Cleanup function to prevent memory leaks
+        function globalCleanup() {
+            // Destroy all Chart.js instances
+            if (typeof Chart !== 'undefined' && Chart.helpers && Chart.helpers.each) {
+                Chart.helpers.each(Chart.instances, function(instance) {
+                    instance.destroy();
+                });
+            }
+            
+            // Clear all intervals
+            let id = setTimeout(function() {}, 0);
+            while (id--) {
+                clearInterval(id);
+                clearTimeout(id);
+            }
+            
+            console.log('App cleanup completed');
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', globalCleanup);
+        
+        // Cleanup on visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('Page hidden - pausing auto-refresh');
+            } else {
+                console.log('Page visible - resuming auto-refresh');
+            }
+        });
+    </script>
+</body>
+</html>

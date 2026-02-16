@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Clima - AgroCaua{% endblock %}
+
+{% block page_title %}Monitoramento Climático{% endblock %}
+{% block page_icon %}<i class="icon-cloud text-blue-600"></i>{% endblock %}
+{% block page_subtitle %}Dados de temperatura, humidade e pressão atmosférica (BME280){% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Temperature -->
+    <div class="kpi-card group hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Temperatura</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-gray-900" id="tempValue">--°C</p>
+                <p class="text-sm font-600 text-green-600" id="tempStatus">OK</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-3" id="tempRange">Min/Máx: --°C / --°C</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
+            <i class="icon-thermometer-sun text-green-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <!-- Humidity -->
+    <div class="kpi-card group hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Humidade</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-gray-900" id="humidityValue">--%</p>
+                <p class="text-sm font-600 text-blue-600" id="humidityStatus">OK</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-3" id="humidityRange">Min/Máx: -% / --%</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform">
+            <i class="icon-droplets text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <!-- Pressure -->
+    <div class="kpi-card group hover:border-indigo-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Pressão</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-gray-900" id="pressureValue">-- hPa</p>
+                <p class="text-sm font-600 text-indigo-600" id="pressureStatus">OK</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-3" id="pressureRange">Nível: Normal</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-indigo-100 to-indigo-50 group-hover:scale-110 transition-transform">
+            <i class="icon-gauge text-indigo-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Temperature Trend -->
+    <div class="card chart-container group hover:shadow-lg transition-all">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-trending-up text-green-600"></i>
+                Temperatura
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Últimas 24h</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="tempChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Humidity & Pressure Combo -->
+    <div class="card chart-container group hover:shadow-lg transition-all">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-trending-up text-blue-600"></i>
+                Humidade & Pressão
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Últimas 24h</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="humidityPressureChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Latest Readings -->
+<div class="card group hover:shadow-lg transition-all">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-table text-blue-600"></i>
+                Leituras Climáticas
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">Histórico de dados do sensor BME280</p>
+        </div>
+        <button onclick="refreshClimaData()" class="btn btn-sm btn-secondary hover:bg-blue-50">
+            <i class="icon-refresh-cw"></i>
+            <span class="hidden sm:inline">Atualizar</span>
+        </button>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-600">Temperatura</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-600">Humidade</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-600">Pressão</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-600">Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="climaTableBody">
+                <tr>
+                    <td colspan="4" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                        <p class="mt-3">A carregar dados...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const climaState = {
+        charts: {},
+        refreshInterval: null,
+        isVisible: true
+    };
+    
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+    
+    function initCharts() {
+        // Temperature Line Chart
+        climaState.charts.temp = new Chart(document.getElementById('tempChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: [],
+                    borderColor: 'rgb(46, 139, 87)',
+                    backgroundColor: 'rgba(46, 139, 87, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: 'rgb(46, 139, 87)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: false } }
+            }
+        });
+        
+        // Humidity & Pressure Chart
+        climaState.charts.humidityPressure = new Chart(document.getElementById('humidityPressureChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Humidade (%)',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 2,
+                        yAxisID: 'y',
+                        pointBackgroundColor: 'rgb(59, 130, 246)'
+                    },
+                    {
+                        label: 'Pressão (hPa)',
+                        data: [],
+                        borderColor: 'rgb(139, 94, 60)',
+                        backgroundColor: 'rgba(139, 94, 60, 0.05)',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 2,
+                        yAxisID: 'y1',
+                        pointBackgroundColor: 'rgb(139, 94, 60)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        min: 0,
+                        max: 100
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        min: 1000,
+                        max: 1030
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateKPIs(data) {
+        if (!data) return;
+        
+        const latest = data[0];
+        
+        if (latest.bme280?.temperatura != null) {
+            document.getElementById('tempValue').textContent = formatTemperature(latest.bme280.temperatura);
+            const tempMin = data.reduce((min, d) => d.bme280?.temperatura ? Math.min(min, d.bme280.temperatura) : min, Infinity);
+            const tempMax = data.reduce((max, d) => d.bme280?.temperatura ? Math.max(max, d.bme280.temperatura) : max, -Infinity);
+            document.getElementById('tempRange').textContent = `Min/Máx: ${tempMin < Infinity ? tempMin.toFixed(1) : '--'}°C / ${tempMax > -Infinity ? tempMax.toFixed(1) : '--'}°C`;
+        }
+        
+        if (latest.bme280?.humidade != null) {
+            document.getElementById('humidityValue').textContent = formatHumidity(latest.bme280.humidade);
+            const humMin = data.reduce((min, d) => d.bme280?.humidade ? Math.min(min, d.bme280.humidade) : min, Infinity);
+            const humMax = data.reduce((max, d) => d.bme280?.humidade ? Math.max(max, d.bme280.humidade) : max, -Infinity);
+            document.getElementById('humidityRange').textContent = `Min/Máx: ${humMin < Infinity ? humMin.toFixed(1) : '--'}% / ${humMax > -Infinity ? humMax.toFixed(1) : '--'}%`;
+        }
+        
+        if (latest.bme280?.pressao != null) {
+            document.getElementById('pressureValue').textContent = formatPressure(latest.bme280.pressao);
+            document.getElementById('pressureRange').textContent = `Nível: ${latest.bme280.pressao > 1013 ? 'Alto' : latest.bme280.pressao < 1010 ? 'Baixo' : 'Normal'}`;
+        }
+    }
+    
+    function updateCharts(data) {
+        if (!data || data.length === 0) return;
+        
+        const recentData = data.slice(0, 24).reverse();
+        const labels = recentData.map(d => formatTime(d.timestamp));
+        const temps = recentData.map(d => d.bme280?.temperatura || null);
+        const humidity = recentData.map(d => d.bme280?.humidade || null);
+        const pressure = recentData.map(d => d.bme280?.pressao || null);
+        
+        if (climaState.charts.temp) {
+            climaState.charts.temp.data.labels = labels;
+            climaState.charts.temp.data.datasets[0].data = temps;
+            climaState.charts.temp.update('none');
+        }
+        
+        if (climaState.charts.humidityPressure) {
+            climaState.charts.humidityPressure.data.labels = labels;
+            climaState.charts.humidityPressure.data.datasets[0].data = humidity;
+            climaState.charts.humidityPressure.data.datasets[1].data = pressure;
+            climaState.charts.humidityPressure.update('none');
+        }
+    }
+    
+    function updateTable(data) {
+        if (!data || data.length === 0) return;
+        
+        const tbody = document.getElementById('climaTableBody');
+        const rows = data.slice(0, 10).map(item => {
+            const timestamp = formatTimestamp(item.timestamp);
+            const temp = formatTemperature(item.bme280?.temperatura);
+            const humidity = formatHumidity(item.bme280?.humidade);
+            const pressure = formatPressure(item.bme280?.pressao);
+            
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 font-500">${temp}</td>
+                    <td class="py-3 px-4 font-500">${humidity}</td>
+                    <td class="py-3 px-4 font-500">${pressure}</td>
+                    <td class="py-3 px-4 text-gray-500">${timestamp}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        tbody.innerHTML = rows || '<tr><td colspan="4" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+    }
+    
+    async function fetchClimaData() {
+        try {
+            const response = await API.getAllData();
+            if (!response.ok) throw new Error('Failed to fetch clima data');
+            
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                updateKPIs(data);
+                updateCharts(data);
+                updateTable(data);
+            }
+        } catch (error) {
+            console.error('Error fetching clima data:', error);
+            showError('Erro ao carregar dados climáticos');
+        }
+    }
+    
+    async function refreshClimaData() {
+        showInfo('A atualizar dados climáticos...');
+        await fetchClimaData();
+    }
+    
+    function setupAutoRefresh() {
+        if (climaState.refreshInterval) {
+            clearInterval(climaState.refreshInterval);
+        }
+        
+        climaState.refreshInterval = setInterval(() => {
+            if (climaState.isVisible && document.visibilityState === 'visible') {
+                fetchClimaData();
+            }
+        }, 60000);
+    }
+    
+    document.addEventListener('visibilitychange', () => {
+        climaState.isVisible = !document.hidden;
+        if (climaState.isVisible) {
+            fetchClimaData();
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        initCharts();
+        await fetchClimaData();
+        setupAutoRefresh();
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        if (climaState.refreshInterval) {
+            clearInterval(climaState.refreshInterval);
+        }
+        Object.values(climaState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {}
+            }
+        });
+    });
+</script>
+{% endblock %}

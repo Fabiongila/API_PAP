@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Sensores - AgroCaua{% endblock %}
+
+{% block page_icon %}<i class="icon-radio text-blue-600 text-2xl"></i>{% endblock %}
+{% block page_title %}Gestão de Sensores{% endblock %}
+{% block page_subtitle %}Monitoramento e status de todos os sensores IoT{% endblock %}
+
+{% block content %}
+<!-- Sensor Status Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="kpi-card group">
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">BME280</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">Online</p>
+            <p class="text-xs text-green-600 dark:text-green-400 mt-1" id="bme280Status">99.8% uptime</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-thermometer text-green-600 dark:text-green-400 text-lg"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card group">
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">GPS</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">Online</p>
+            <p class="text-xs text-green-600 dark:text-green-400 mt-1" id="gpsStatus">100% precisão</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/10 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-map-pin text-blue-600 dark:text-blue-400 text-lg"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card group">
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solo</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">Online</p>
+            <p class="text-xs text-green-600 dark:text-green-400 mt-1" id="soilStatus">98.5% uptime</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-earth-100 to-earth-50 dark:from-earth-900/20 dark:to-earth-800/10 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-droplet text-soil-700 dark:text-soil-500 text-lg"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card group">
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Vibração</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">Online</p>
+            <p class="text-xs text-green-600 dark:text-green-400 mt-1" id="vibrationStatus">99.2% uptime</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900/20 dark:to-orange-800/10 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-radio text-orange-600 dark:text-orange-400 text-lg"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card group">
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Visão</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">Online</p>
+            <p class="text-xs text-green-600 dark:text-green-400 mt-1" id="visionStatus">97.8% uptime</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-camera text-purple-600 dark:text-purple-400 text-lg"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Sensor Activity - Bar Chart -->
+    <div class="card chart-container">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="icon-bar-chart text-green-600 dark:text-green-400"></i>
+            Atividade dos Sensores (Últimas 24h)
+        </h3>
+        <div class="chart-wrapper">
+            <canvas id="sensorActivityChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Data Transmission Quality - Line Chart -->
+    <div class="card chart-container">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="icon-trending-up text-blue-600 dark:text-blue-400"></i>
+            Qualidade de Transmissão
+        </h3>
+        <div class="chart-wrapper">
+            <canvas id="transmissionQualityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Sensor Health Metrics -->
+<div class="card chart-container mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <i class="icon-activity text-green-600 dark:text-green-400"></i>
+        Métricas de Saúde dos Sensores
+    </h3>
+    <div class="chart-wrapper">
+        <canvas id="sensorHealthChart"></canvas>
+    </div>
+</div>
+
+<!-- Detailed Sensor Status Table -->
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="icon-list text-green-600 dark:text-green-400"></i>
+            Status Detalhado dos Sensores
+        </h3>
+        <div class="flex gap-2">
+            <button onclick="refreshSensorData()" class="btn-secondary btn-sm">
+                <i class="icon-refresh-cw"></i>
+                Atualizar
+            </button>
+            <button class="btn-primary btn-sm">
+                <i class="icon-settings"></i>
+                Configurar
+            </button>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Sensor</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Tipo</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Última Leitura</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Bateria</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Sinal</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="sensorStatusTable">
+                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">BME280-001</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Clima</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Online</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400" id="bme280LastRead">--</td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400 font-semibold">87%</span></td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400">●●●●○</span></td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                            <i class="icon-settings"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">GPS-001</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Localização</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Online</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400" id="gpsLastRead">--</td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400 font-semibold">92%</span></td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400">●●●●●</span></td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                            <i class="icon-settings"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">SOIL-001</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Humidade Solo</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Online</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400" id="soilLastRead">--</td>
+                    <td class="py-3 px-4"><span class="text-yellow-600 dark:text-yellow-400 font-semibold">65%</span></td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400">●●●●○</span></td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                            <i class="icon-settings"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">VIB-001</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Vibração</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Online</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400" id="vibLastRead">--</td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400 font-semibold">78%</span></td>
+                    <td class="py-3 px-4"><span class="text-yellow-600 dark:text-yellow-400">●●●○○</span></td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                            <i class="icon-settings"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">CAM-001</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Visão</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Online</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400" id="camLastRead">--</td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400 font-semibold">82%</span></td>
+                    <td class="py-3 px-4"><span class="text-green-600 dark:text-green-400">●●●●○</span></td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
+                            <i class="icon-settings"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    let charts = {};
+    
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.color = '#6B7280';
+    
+    function initCharts() {
+        // Sensor Activity Bar Chart
+        charts.activity = new Chart(document.getElementById('sensorActivityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['BME280', 'GPS', 'Solo', 'Vibração', 'Visão'],
+                datasets: [{
+                    label: 'Leituras',
+                    data: [1440, 1438, 1425, 1420, 1395],
+                    backgroundColor: [
+                        'rgba(46, 139, 87, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(139, 94, 60, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(139, 92, 246, 0.8)'
+                    ],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1500
+                    }
+                }
+            }
+        });
+        
+        // Transmission Quality Line Chart
+        charts.transmission = new Chart(document.getElementById('transmissionQualityChart'), {
+            type: 'line',
+            data: {
+                labels: ['00h', '04h', '08h', '12h', '16h', '20h', 'Agora'],
+                datasets: [{
+                    label: 'Qualidade (%)',
+                    data: [98, 97, 99, 98, 96, 98, 99],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 90,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Sensor Health Multi-line Chart
+        charts.health = new Chart(document.getElementById('sensorHealthChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                datasets: [
+                    {
+                        label: 'Uptime (%)',
+                        data: [99.5, 99.7, 99.8, 99.6, 99.9, 99.8, 99.7, 99.9, 99.8, 99.9, 99.7, 99.8],
+                        borderColor: 'rgb(46, 139, 87)',
+                        backgroundColor: 'rgba(46, 139, 87, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Precisão (%)',
+                        data: [98.2, 98.5, 98.8, 98.6, 98.9, 99.1, 98.9, 99.2, 99.0, 99.3, 99.1, 99.2],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Bateria Média (%)',
+                        data: [95, 92, 89, 86, 83, 80, 77, 74, 71, 68, 65, 62],
+                        borderColor: 'rgb(245, 158, 11)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 60,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+    
+    async function refreshSensorData() {
+        try {
+            showInfo('A atualizar dados dos sensores...');
+            const response = await API.getAllData();
+            if (!response.ok) throw new Error('Failed to fetch data');
+            
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const latest = data[0];
+                document.getElementById('bme280LastRead').textContent = timeAgo(latest.timestamp);
+                document.getElementById('gpsLastRead').textContent = timeAgo(latest.timestamp);
+                document.getElementById('soilLastRead').textContent = timeAgo(latest.timestamp);
+                document.getElementById('vibLastRead').textContent = timeAgo(latest.timestamp);
+                document.getElementById('camLastRead').textContent = timeAgo(latest.timestamp);
+                
+                showSuccess('Dados atualizados com sucesso');
+            }
+        } catch (error) {
+            console.error('Error refreshing sensor data:', error);
+            showError('Erro ao atualizar dados dos sensores');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        initCharts();
+        refreshSensorData();
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        Object.values(charts).forEach(chart => chart.destroy());
+    });
+</script>
+{% endblock %}

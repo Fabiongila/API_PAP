@@ -1,0 +1,144 @@
+<aside 
+    class="sidebar bg-white border-r border-gray-200" 
+    x-data="{ mobileOpen: false }"
+    :class="{ 'open': mobileOpen }"
+    @click.away="mobileOpen = false"
+>
+    <div class="h-screen flex flex-col w-80 overflow-hidden">
+
+        <!-- Logo Section -->
+        <div class="p-5 border-b border-gray-200 bg-white flex-shrink-0">
+            <a href="/dashboard" class="flex items-center gap-3 group">
+             <!---->   <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:shadow-md transition-all duration-300">
+                    🌾
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-lg font-bold text-green-900 truncate">AgroCaua</h1>
+                    <p class="text-xs text-gray-500">Monitoramento</p>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Navigation - Main -->
+        <nav class="flex-1 overflow-y-auto min-h-0">
+            <!-- Primary Section -->
+            <div class="px-3 py-3 space-y-1">
+                <a href="/dashboard" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    <i class="icon-layout-dashboard flex-shrink-0"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="/dashboard/culturas" class="sidebar-link {% if request.endpoint == 'dashboard.culturas' %}active{% endif %}">
+                    <i class="icon-leaf flex-shrink-0"></i>
+                    <span>Culturas</span>
+                </a>
+                
+                <a href="/dashboard/sensores" class="sidebar-link {% if request.endpoint == 'dashboard.sensores' %}active{% endif %}">
+                    <i class="icon-cpu flex-shrink-0"></i>
+                    <span>Sensores</span>
+                </a>
+            </div>
+            
+            <!-- Divider with Label -->
+            <div class="px-3 py-2">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <span class="text-xs font-600 uppercase tracking-wider text-gray-400 px-1 flex-shrink-0">Dados</span>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+            </div>
+            
+            <!-- Data Section -->
+            <div class="px-3 py-3 space-y-1">
+                <a href="/dashboard/gps" class="sidebar-link {% if request.endpoint == 'dashboard.gps' %}active{% endif %}">
+                    <i class="icon-map-pin flex-shrink-0"></i>
+                    <span>GPS</span>
+                </a>
+                
+                <a href="/dashboard/clima" class="sidebar-link {% if request.endpoint == 'dashboard.clima' %}active{% endif %}">
+                    <i class="icon-thermometer-sun flex-shrink-0"></i>
+                    <span>Clima</span>
+                </a>
+                
+                <a href="/dashboard/solo" class="sidebar-link {% if request.endpoint == 'dashboard.solo' %}active{% endif %}">
+                    <i class="icon-droplet flex-shrink-0"></i>
+                    <span>Solo</span>
+                </a>
+                
+                <a href="/dashboard/visao" class="sidebar-link {% if request.endpoint == 'dashboard.visao' %}active{% endif %}">
+                    <i class="icon-camera flex-shrink-0"></i>
+                    <span>Visão</span>
+                </a>
+            </div>
+            
+            <!-- Divider with Label -->
+            <div class="px-3 py-2">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <span class="text-xs font-600 uppercase tracking-wider text-gray-400 px-1 flex-shrink-0">Sistema</span>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+            </div>
+            
+            <!-- System Section -->
+            <div class="px-3 py-3 space-y-1">
+                <a href="/dashboard/alertas" class="sidebar-link group {% if request.endpoint == 'dashboard.alertas' %}active{% endif %}">
+                    <i class="icon-alert-circle flex-shrink-0"></i>
+                    <span>Alertas</span>
+                    <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-danger text-white ml-auto flex-shrink-0 group-hover:scale-110 transition-transform">0</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Bottom Section - Settings & Logout -->
+        <div class="border-t border-gray-200 py-3 px-3 flex-shrink-0">
+            <div class="space-y-1 mb-3">
+                <a href="/dashboard/config" class="sidebar-link {% if request.endpoint == 'dashboard.config' %}active{% endif %}">
+                    <i class="icon-settings flex-shrink-0"></i>
+                    <span>Configurações</span>
+                </a>
+                
+                <button onclick="handleLogout()" class="sidebar-link w-full text-left hover:bg-red-50 hover:text-red-600">
+                    <i class="icon-log-out flex-shrink-0"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+            
+            <!-- Version Info -->
+            <div class="px-2 py-2 text-center border-t border-gray-100">
+                <p class="text-xs text-gray-400 font-500">AgroCaua v1.0.0</p>
+            </div>
+        </div>
+        
+    </div>
+</aside>
+
+<!-- Mobile Hamburger Button (shown on mobile via Tailwind) -->
+<div class="fixed top-4 left-4 z-50 md:hidden">
+    <button 
+        @click="mobileOpen = !mobileOpen"
+        class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+    >
+        <i class="icon-menu text-gray-600"></i>
+    </button>
+</div>
+
+<script>
+    async function handleLogout() {
+        if (confirm('Tem a certeza que deseja terminar a sessão?')) {
+            try {
+                await API.logout();
+                clearToken();
+                showSuccess('Sessão terminada com sucesso');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 800);
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Force logout even if API fails
+                clearToken();
+                window.location.href = '/login';
+            }
+        }
+    }
+</script>

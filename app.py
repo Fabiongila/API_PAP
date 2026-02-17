@@ -1,12 +1,25 @@
 from flask import Flask
 from models import db
 from routes import api_routes
-from auth_routes import auth_bp, blacklist
-from dashboard_routes import dashboard_bp, auth_pages_bp
 from config import Config
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import os
+
+# Importar blueprints
+try:
+    from auth_routes import auth_bp, blacklist
+except Exception as e:
+    print(f"Error importing auth_routes: {e}")
+    auth_bp = None
+    blacklist = set()
+
+try:
+    from dashboard_routes import dashboard_bp, auth_pages_bp
+except Exception as e:
+    print(f"Error importing dashboard_routes: {e}")
+    dashboard_bp = None
+    auth_pages_bp = None
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,13 +38,21 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 # BLUEPRINTS
 # API routes
-app.register_blueprint(auth_bp)
+if auth_bp:
+    app.register_blueprint(auth_bp)
 app.register_blueprint(api_routes)
 
 # Frontend routes
-app.register_blueprint(auth_pages_bp)
-app.register_blueprint(dashboard_bp)
+if auth_pages_bp:
+    app.register_blueprint(auth_pages_bp)
+if dashboard_bp:
+    app.register_blueprint(dashboard_bp)
 
+# Debug: Print all registered routes
+print("\n=== REGISTERED ROUTES ===")
+for rule in app.url_map.iter_rules():
+    print(f"{rule.rule} -> {rule.endpoint}")
+print("=== END ROUTES ===\n")
 
 with app.app_context():
     db.create_all()

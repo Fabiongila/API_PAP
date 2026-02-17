@@ -82,6 +82,27 @@ def logout():
 
 
 # ===============================
+# GET USER PROFILE
+# ===============================
+@auth_bp.route("/api/profile", methods=["GET"])
+@jwt_required()
+def get_profile():
+    """Get current logged-in user profile"""
+    user_id = int(get_jwt_identity())
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"erro": "Usuário não encontrado"}), 404
+    
+    return jsonify({
+        "id": user.id,
+        "nome": user.nome,
+        "email": user.email,
+        "created_at": user.created_at.isoformat()
+    }), 200
+
+
+# ===============================
 # DELETE ACCOUNT
 # ===============================
 @auth_bp.route("/api/delete-account", methods=["DELETE"])

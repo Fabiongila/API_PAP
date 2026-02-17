@@ -51,12 +51,12 @@
                 <form class="space-y-4">
                     <div>
                         <label class="form-label">Nome Completo</label>
-                        <input type="text" class="form-input" placeholder="João Silva" value="Utilizador AgroCaua">
+                        <input type="text" class="form-input" id="profileNome" placeholder="João Silva" readonly>
                     </div>
                     
                     <div>
                         <label class="form-label">Email</label>
-                        <input type="email" class="form-input" placeholder="email@exemplo.com" value="user@agrocaua.pt">
+                        <input type="email" class="form-input" id="profileEmail" placeholder="email@exemplo.com" readonly>
                     </div>
                     
                     <div>
@@ -401,5 +401,25 @@
         // Add active class to clicked nav item
         document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
     }
+
+    // Load user profile on page load
+    async function loadUserProfile() {
+        try {
+            const response = await API.getProfile();
+            if (response.ok) {
+                const userData = await response.json();
+                document.getElementById('profileNome').value = userData.nome || 'Utilizador';
+                document.getElementById('profileEmail').value = userData.email || 'user@example.com';
+                console.log('[Config] User profile loaded');
+            }
+        } catch (error) {
+            console.error('[Config] Error loading user profile:', error);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserProfile();
+    });
 </script>
 {% endblock %}

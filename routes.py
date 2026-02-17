@@ -283,3 +283,55 @@ def listar_visao():
     }
 
     return jsonify(resultado), 200
+
+
+# Rotas para gerar alertas baseado nos dados
+@api_routes.route('/api/alertas', methods=['GET'])
+def listar_alertas():
+    registros = DadosIoT.query.order_by(DadosIoT.id.desc()).limit(100).all()
+
+    resultado = []
+
+    for r in registros:
+        # Gerar alertas baseado nas condições dos dados
+        if r.detecao_praga == True:
+            resultado.append({
+                "id": f"ALT-{r.id}-praga",
+                "tipo": "Praga",
+                "mensagem": f"Detecção de praga: {r.tipo_praga or 'desconhecida'}",
+                "severidade": "crítico" if r.confianca and r.confianca > 0.8 else "aviso",
+                "timestamp": r.timestamp,
+                "status": "ativo"
+            })
+
+        if r.humidade_solo is not None and r.humidade_solo < 30:
+            resultado.append({
+                "id": f"ALT-{r.id}-solo",
+                "tipo": "Solo",
+                "mensagem": f"Humidade do solo baixa: {r.humidade_solo:.1f}%",
+                "severidade": "crítico",
+                "timestamp": r.timestamp,
+                "status": "ativo"
+            })
+
+        if r.temperatura_ar is not None and (r.temperatura_ar < 15 or r.temperatura_ar > 35):
+            resultado.append({
+                "id": f"ALT-{r.id}-temp",
+                "tipo": "Clima",
+                "mensagem": f"Temperatura fora dos limites: {r.temperatura_ar:.1f}°C",
+                "severidade": "aviso",
+                "timestamp": r.timestamp,
+                "status": "ativo"
+            })
+
+        if r.vibracao == True:
+            resultado.append({
+                "id": f"ALT-{r.id}-vib",
+                "tipo": "Sensor",
+                "mensagem": "Vibração detectada no equipamento",
+                "severidade": "aviso",
+                "timestamp": r.timestamp,
+                "status": "ativo"
+            })
+
+    return jsonify(resultado), 200

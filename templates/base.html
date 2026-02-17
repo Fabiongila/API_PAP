@@ -36,7 +36,7 @@
             <div class="flex items-center justify-between gap-4">
                     <!-- Left: Title and Icon -->
                     <div class="flex items-center gap-3 min-w-0">
-                        {% block page_icon %}<i class="icon-layout-dashboard text-green-600 text-2xl flex-shrink-0"></i>{% endblock %}
+                        {% block page_icon %}<!--<i class="icon-layout-dashboard text-green-600 text-2xl flex-shrink-0"></i>-->{% endblock %}
                         <div class="min-w-0">
                             <h2 class="text-2xl font-bold text-gray-900 truncate">{% block page_title %}Dashboard{% endblock %}</h2>
                             <p class="text-xs text-gray-500 mt-0.5 truncate">{% block page_subtitle %}Visão geral dos sensores{% endblock %}</p>
@@ -220,24 +220,42 @@
             }
         }
 
-        // Load user information from token on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        // Load user information from API
+        async function loadUserProfile() {
             try {
                 const token = getToken();
-                if (token) {
-                    // Try to decode and display user info
-                    const userData = JSON.parse(atob(token.split('.')[1]));
-                    if (userData.nome) {
-                        document.getElementById('userName').textContent = userData.nome;
-                        document.getElementById('topbarUserName').textContent = userData.nome;
-                    }
-                    if (userData.email) {
-                        document.getElementById('userEmail').textContent = userData.email;
+                if (!token) {
+                    return;
+                }
+                
+                const response = await API.getProfile();
+                if (response.ok) {
+                    const userData = await response.json();
+                    document.getElementById('userName').textContent = userData.nome || 'Utilizador';
+                    document.getElementById('topbarUserName').textContent = userData.nome || 'Utilizador';
+                    document.getElementById('userEmail').textContent = userData.email || 'user@example.com';
+                    console.log('[Base] User profile loaded successfully');
+                } else {
+                    console.warn('[Base] Could not fetch user profile');
+                    // Fallback: try to decode from token if API fails
+                    try {
+                        const userData = JSON.parse(atob(token.split('.')[1]));
+                        if (userData.sub) {
+                            document.getElementById('userName').textContent = userData.sub || 'Utilizador';
+                            document.getElementById('topbarUserName').textContent = userData.sub || 'Utilizador';
+                        }
+                    } catch (e) {
+                        console.log('Could not decode token as fallback');
                     }
                 }
             } catch (error) {
-                console.log('Could not load user info from token');
+                console.error('[Base] Error loading user profile:', error);
             }
+        }
+
+        // Load user information from API on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserProfile();
         });
         
         // Search functionality

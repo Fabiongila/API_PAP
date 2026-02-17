@@ -96,6 +96,12 @@ const API = {
     });
     return response;
   },
+
+  // User Profile
+  getProfile: async () => {
+    const response = await authenticatedFetch('/api/profile');
+    return response;
+  },
   
   // Sensor Data
   getAllData: async () => {
@@ -125,6 +131,11 @@ const API = {
   
   getVisao: async () => {
     const response = await authenticatedFetch('/api/visao');
+    return response;
+  },
+
+  getAlertas: async () => {
+    const response = await authenticatedFetch('/api/alertas');
     return response;
   }
 };

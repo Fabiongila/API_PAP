@@ -4,184 +4,224 @@
 
 {% block page_title %}Gestão de Culturas{% endblock %}
 {% block page_icon %}<i class="icon-leaf text-green-600"></i>{% endblock %}
-{% block page_subtitle %}Monitoramento e gestão das culturas plantadas{% endblock %}
+{% block page_subtitle %}Visão geral do desempenho e saúde das suas plantações{% endblock %}
 
 {% block content %}
-<!-- Crop Health KPIs -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Índice de Saúde</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white" id="healthIndex">85%</p>
-            <p class="text-xs text-green-600 dark:text-green-400 mt-1">Bom estado</p>
+
+<!-- KPI Cards Row 1 - Main Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Health Index Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Índice de Saúde</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="healthIndex">--</p>
+                <p class="text-sm font-600 text-green-600">Bom estado</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-heart-pulse text-green-600 dark:text-green-400 text-xl"></i>
-        </div>
-    </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Área Cultivada</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">12.5 ha</p>
-            <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">3 zonas ativas</p>
-        </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-layout-grid text-blue-600 dark:text-blue-400 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-heart text-green-600 text-2xl"></i>
         </div>
     </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Dias até Colheita</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white" id="harvestDays">45</p>
-            <p class="text-xs text-earth-600 dark:text-earth-400 mt-1">Estimativa</p>
+
+    <!-- Cultivated Area Card -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Área Cultivada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="cultivatedArea">--</p>
+                <p class="text-sm font-600 text-blue-600">3 zonas ativas</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-earth-100 to-earth-50 dark:from-earth-900/20 dark:to-earth-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-calendar text-soil-700 dark:text-soil-500 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-layers text-blue-600 text-2xl"></i>
         </div>
     </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Produção Estimada</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">8.2 t</p>
-            <p class="text-xs text-purple-600 dark:text-purple-400 mt-1">Por hectare</p>
+
+    <!-- Harvest Days Card -->
+    <div class="kpi-card group cursor-pointer hover:border-amber-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Dias até Colheita</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="harvestDays">--</p>
+                <p class="text-sm font-600 text-amber-600">Estimativa média</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-trending-up text-purple-600 dark:text-purple-400 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-calendar text-amber-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Estimated Production Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Produção Estimada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="estimatedProduction">--</p>
+                <p class="text-sm font-600 text-green-600">Por hectare</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-trending-up text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Active Zones Card -->
+    <div class="kpi-card group cursor-pointer hover:border-purple-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Zonas Ativas</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">5</p>
+                <p class="text-sm font-600 text-purple-600">Monitoradas</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-map text-purple-600 text-2xl"></i>
         </div>
     </div>
 </div>
 
 <!-- Charts Section -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Crop Growth Stage - Pie Chart -->
-    <div class="card chart-container">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="icon-pie-chart text-green-600 dark:text-green-400"></i>
-            Estágio de Crescimento
-        </h3>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Growth Stage Donut Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Estágio de Crescimento
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Distribuição atual</span>
+        </div>
         <div class="chart-wrapper">
             <canvas id="growthStageChart"></canvas>
         </div>
     </div>
-    
-    <!-- Environmental Conditions Impact - Bar Chart -->
-    <div class="card chart-container">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="icon-bar-chart text-blue-600 dark:text-blue-400"></i>
-            Condições Ambientais
-        </h3>
+
+    <!-- Environmental Conditions Bar Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 lg:col-span-2 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Condições Ambientais
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Média capturada pelos sensores</span>
+        </div>
         <div class="chart-wrapper">
-            <canvas id="environmentChart"></canvas>
+            <canvas id="environmentalConditionsChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Soil Quality Trend -->
-<div class="card chart-container mb-8">
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <i class="icon-trending-up text-earth-600 dark:text-earth-400"></i>
-        Tendência de Qualidade do Solo (Últimas 2 Semanas)
-    </h3>
+<!-- Soil Quality Trend Line Chart -->
+<div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 mb-8 slide-in-up" style="animation-delay: 0.3s">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-trending-up text-green-600 text-xl"></i>
+            Tendência de Qualidade do Solo
+        </h3>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-500 text-gray-500">Acompanhamento nutricional e hídrico</span>
+            <select class="form-input text-xs w-24" id="soilTrendFilter" onchange="updateSoilTrendChart()">
+                <option value="semanas">Semanas</option>
+                <option value="meses">Meses</option>
+            </select>
+        </div>
+    </div>
     <div class="chart-wrapper">
-        <canvas id="soilQualityChart"></canvas>
+        <canvas id="soilTrendChart"></canvas>
     </div>
 </div>
 
-<!-- Crop Zones Table -->
-<div class="card">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <i class="icon-map text-green-600 dark:text-green-400"></i>
-            Zonas de Cultivo
-        </h3>
-        <button class="btn-primary btn-sm">
-            <i class="icon-plus"></i>
-            Nova Zona
+<!-- Cultivation Zones Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-grid text-green-600 text-xl"></i>
+                Zonas de Cultivo
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">Detalhamento por talhão e acompanhamento de saúde</p>
+        </div>
+        <button onclick="openNewZoneModal()" class="btn btn-primary">
+            <i class="icon-plus text-lg"></i>
+            <span>Nova Zona</span>
         </button>
     </div>
-    
+
+    <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full text-sm">
             <thead>
-                <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Zona</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Cultura</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Área</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Estágio</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Saúde</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Ações</th>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Zona</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Cultura</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Área Total</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estágio Atual</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status de Saúde</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
                 </tr>
             </thead>
-            <tbody id="cropZonesTable">
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">Zona A</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Milho</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">5.2 ha</td>
-                    <td class="py-3 px-4"><span class="badge badge-info">Crescimento</span></td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Excelente</span></td>
-                    <td class="py-3 px-4">
-                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                            <i class="icon-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">Zona B</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Soja</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">4.8 ha</td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Floração</span></td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Bom</span></td>
-                    <td class="py-3 px-4">
-                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                            <i class="icon-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100 font-semibold">Zona C</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Trigo</td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">2.5 ha</td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Maturação</span></td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Atenção</span></td>
-                    <td class="py-3 px-4">
-                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                            <i class="icon-eye"></i>
-                        </button>
+            <tbody id="zonesTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">Mostrando 1-5 de 12 zonas ativas</p>
+        <div class="flex gap-2">
+            <button class="btn btn-sm btn-secondary">Anterior</button>
+            <button class="btn btn-sm btn-secondary">Próximo</button>
+        </div>
+    </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    let charts = {};
-    
-    Chart.defaults.font.family = 'Inter, sans-serif';
+    const culturaState = {
+        charts: {},
+        refreshInterval: null
+    };
+
+    // Configure Chart.js
+    Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = '#6B7280';
-    
+
     function initCharts() {
-        // Growth Stage Pie Chart
-        charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
+        console.log('[Culturas] Initializing charts...');
+
+        // Growth Stage Donut Chart
+        culturaState.charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Germinação', 'Crescimento', 'Floração', 'Maturação'],
+                labels: ['Germinação', 'Floração', 'Maturação', 'Repouso'],
                 datasets: [{
-                    data: [15, 42, 28, 15],
+                    data: [15, 25, 45, 15],
                     backgroundColor: [
-                        'rgba(34, 197, 94, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(139, 92, 246, 0.8)'
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(107, 114, 128, 0.85)'
                     ],
-                    borderWidth: 0
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(245, 158, 11)',
+                        'rgb(107, 114, 128)'
+                    ],
+                    borderWidth: 2,
+                    spacing: 3,
+                    hoverOffset: 8
                 }]
             },
             options: {
@@ -190,115 +230,262 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
                     }
                 }
             }
         });
-        
+
         // Environmental Conditions Bar Chart
-        charts.environment = new Chart(document.getElementById('environmentChart'), {
+        culturaState.charts.envConditions = new Chart(document.getElementById('environmentalConditionsChart'), {
             type: 'bar',
             data: {
                 labels: ['Temperatura', 'Humidade', 'Luminosidade', 'pH Solo', 'Nutrientes'],
                 datasets: [{
-                    label: 'Nível Ideal (%)',
-                    data: [85, 78, 92, 88, 75],
+                    label: 'Valor',
+                    data: [24.5, 65, 450, 6.5, 8.2],
                     backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(139, 94, 60, 0.8)',
-                        'rgba(46, 139, 87, 0.8)'
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(251, 191, 36, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(139, 92, 246, 0.85)'
                     ],
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(59, 130, 246)',
+                        'rgb(251, 191, 36)',
+                        'rgb(34, 197, 94)',
+                        'rgb(139, 92, 246)'
+                    ],
+                    borderWidth: 1.5,
                     borderRadius: 6,
-                    borderSkipped: false
+                    barPercentage: 0.7
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                indexAxis: 'y',
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 }
                     }
                 },
                 scales: {
-                    y: {
+                    x: {
                         beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
                     }
                 }
             }
         });
-        
+
         // Soil Quality Trend Line Chart
-        charts.soilQuality = new Chart(document.getElementById('soilQualityChart'), {
+        culturaState.charts.soilTrend = new Chart(document.getElementById('soilTrendChart'), {
             type: 'line',
             data: {
-                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8', 'Sem 9', 'Sem 10', 'Sem 11', 'Sem 12', 'Sem 13', 'Sem 14'],
+                labels: ['Sem 1', 'Sem 3', 'Sem 5', 'Sem 7', 'Sem 9', 'Sem 11', 'Sem 13'],
                 datasets: [
                     {
-                        label: 'pH',
-                        data: [6.2, 6.3, 6.4, 6.3, 6.5, 6.6, 6.5, 6.7, 6.6, 6.8, 6.7, 6.9, 6.8, 7.0],
-                        borderColor: 'rgb(139, 94, 60)',
-                        backgroundColor: 'rgba(139, 94, 60, 0.1)',
+                        label: 'Nível pH',
+                        data: [6.0, 6.2, 6.4, 6.5, 6.4, 6.3, 6.2],
+                        borderColor: 'rgb(251, 191, 36)',
+                        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+                        borderWidth: 2.5,
                         tension: 0.4,
-                        fill: false
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(251, 191, 36)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
                     },
                     {
                         label: 'Humidade (%)',
-                        data: [45, 48, 50, 47, 52, 55, 53, 58, 56, 60, 58, 62, 60, 65],
+                        data: [55, 60, 62, 65, 68, 70, 72],
                         borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5,
                         tension: 0.4,
-                        fill: false
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
                     },
                     {
                         label: 'Nutrientes (índice)',
-                        data: [72, 74, 75, 73, 76, 78, 77, 80, 79, 82, 81, 84, 83, 85],
-                        borderColor: 'rgb(46, 139, 87)',
-                        backgroundColor: 'rgba(46, 139, 87, 0.1)',
+                        data: [7.5, 7.8, 8.2, 8.5, 8.8, 9.0, 9.2],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        borderWidth: 2.5,
                         tension: 0.4,
-                        fill: false
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(34, 197, 94)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
                     }
                 }
             }
         });
     }
-    
+
+    function updateKPIs(data) {
+        if (!data || data.length === 0) return;
+        
+        const latest = data[0];
+        
+        // Calculate health index based on sensor data
+        let healthScore = 85; // Default
+        if (latest.bme280?.temperatura != null) {
+            const temp = latest.bme280.temperatura;
+            if (temp >= 15 && temp <= 30) healthScore = Math.min(100, healthScore + 5);
+        }
+        if (latest.bme280?.humidade != null) {
+            const humidity = latest.bme280.humidade;
+            if (humidity >= 40 && humidity <= 70) healthScore = Math.min(100, healthScore + 5);
+        }
+        
+        document.getElementById('healthIndex').textContent = Math.round(healthScore) + '%';
+        document.getElementById('cultivatedArea').textContent = '12.5 ha';
+        document.getElementById('harvestDays').textContent = '42 dias';
+        document.getElementById('estimatedProduction').textContent = '8.4 t';
+    }
+
+    function updateZonesTable(data) {
+        // Generate zones based on available data
+        const zones = [
+            { zone: 'Zona Monitorada', crop: 'Vários', area: '12.5 ha', stage: 'Crescimento', health: 'Bom' }
+        ];
+
+        const tbody = document.getElementById('zonesTableBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">Sem dados de zonas disponíveis</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = zones.map(z => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 font-500 text-gray-900">${z.zone}</td>
+                <td class="py-3 px-4 text-gray-700">${z.crop}</td>
+                <td class="py-3 px-4 text-gray-700">${z.area}</td>
+                <td class="py-3 px-4 text-gray-700">${z.stage}</td>
+                <td class="py-3 px-4">
+                    <span class="badge ${z.health === 'Excelente' ? 'badge-success' : z.health === 'Bom' ? 'badge-info' : 'badge-warning'}">
+                        ${z.health}
+                    </span>
+                </td>
+                <td class="py-3 px-4">
+                    <button class="text-green-600 hover:text-green-700 font-500">Detalhes</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        
+        culturaState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Culturas] Auto-refreshing...');
+                fetchCulturasData();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    function updateSoilTrendChart() {
+        // This function is called when filter changes
+        console.log('[Culturas] Updating soil trend chart...');
+    }
+
+    function openNewZoneModal() {
+        showInfo('Funcionalidade de nova zona em desenvolvimento');
+    }
+
+    // Fetch and update data
+    async function fetchCulturasData() {
+        try {
+            const response = await API.getAllData();
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    updateKPIs(data);
+                    updateZonesTable(data);
+                    console.log('[Culturas] Data updated successfully');
+                } else {
+                    showWarning('Nenhum dado disponível');
+                }
+            }
+        } catch (error) {
+            console.error('[Culturas] Error:', error);
+            showError('Erro ao carregar dados das culturas');
+        }
+    }
+
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Culturas] Initializing...');
         initCharts();
+        fetchCulturasData();
+        setupAutoRefresh();
     });
-    
+
+    // Cleanup
     window.addEventListener('beforeunload', () => {
-        Object.values(charts).forEach(chart => chart.destroy());
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        Object.values(culturaState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
     });
 </script>
 {% endblock %}

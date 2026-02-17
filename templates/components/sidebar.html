@@ -4,25 +4,25 @@
     :class="{ 'open': mobileOpen }"
     @click.away="mobileOpen = false"
 >
-    <div class="h-screen flex flex-col w-80 overflow-hidden">
+    <div class="h-screen flex flex-col overflow-hidden">
 
         <!-- Logo Section -->
-        <div class="p-5 border-b border-gray-200 bg-white flex-shrink-0">
+        <div class="p-4 border-b border-gray-200 bg-white flex-shrink-0">
             <a href="/dashboard" class="flex items-center gap-3 group">
-             <!---->   <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:shadow-md transition-all duration-300">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center text-white font-bold text-lg group-hover:shadow-md transition-all duration-300 flex-shrink-0">
                     🌾
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h1 class="text-lg font-bold text-green-900 truncate">AgroCaua</h1>
+                    <h1 class="text-base font-bold text-gray-900 truncate">AgroCaua</h1>
                     <p class="text-xs text-gray-500">Monitoramento</p>
                 </div>
             </a>
         </div>
         
         <!-- Navigation - Main -->
-        <nav class="flex-1 overflow-y-auto min-h-0">
+        <nav class="flex-1 overflow-y-auto min-h-0 px-2 py-3">
             <!-- Primary Section -->
-            <div class="px-3 py-3 space-y-1">
+            <div class="space-y-1">
                 <a href="/dashboard" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
                     <i class="icon-layout-dashboard flex-shrink-0"></i>
                     <span>Dashboard</span>
@@ -40,16 +40,12 @@
             </div>
             
             <!-- Divider with Label -->
-            <div class="px-3 py-2">
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                    <span class="text-xs font-600 uppercase tracking-wider text-gray-400 px-1 flex-shrink-0">Dados</span>
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                </div>
+            <div class="py-2 px-2 mt-3 mb-1">
+                <span class="text-xs font-600 uppercase tracking-wider text-gray-400">Dados</span>
             </div>
             
             <!-- Data Section -->
-            <div class="px-3 py-3 space-y-1">
+            <div class="space-y-1">
                 <a href="/dashboard/gps" class="sidebar-link {% if request.endpoint == 'dashboard.gps' %}active{% endif %}">
                     <i class="icon-map-pin flex-shrink-0"></i>
                     <span>GPS</span>
@@ -72,27 +68,23 @@
             </div>
             
             <!-- Divider with Label -->
-            <div class="px-3 py-2">
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                    <span class="text-xs font-600 uppercase tracking-wider text-gray-400 px-1 flex-shrink-0">Sistema</span>
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                </div>
+            <div class="py-2 px-2 mt-3 mb-1">
+                <span class="text-xs font-600 uppercase tracking-wider text-gray-400">Sistema</span>
             </div>
             
             <!-- System Section -->
-            <div class="px-3 py-3 space-y-1">
+            <div class="space-y-1">
                 <a href="/dashboard/alertas" class="sidebar-link group {% if request.endpoint == 'dashboard.alertas' %}active{% endif %}">
                     <i class="icon-alert-circle flex-shrink-0"></i>
                     <span>Alertas</span>
-                    <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-danger text-white ml-auto flex-shrink-0 group-hover:scale-110 transition-transform">0</span>
+                    <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-red-500 text-white ml-auto flex-shrink-0 group-hover:scale-110 transition-transform">0</span>
                 </a>
             </div>
         </nav>
 
         <!-- Bottom Section - Settings & Logout -->
-        <div class="border-t border-gray-200 py-3 px-3 flex-shrink-0">
-            <div class="space-y-1 mb-3">
+        <div class="border-t border-gray-200 py-2 px-2 flex-shrink-0">
+            <div class="space-y-1 mb-2">
                 <a href="/dashboard/config" class="sidebar-link {% if request.endpoint == 'dashboard.config' %}active{% endif %}">
                     <i class="icon-settings flex-shrink-0"></i>
                     <span>Configurações</span>
@@ -105,7 +97,7 @@
             </div>
             
             <!-- Version Info -->
-            <div class="px-2 py-2 text-center border-t border-gray-100">
+            <div class="px-1 py-1 text-center border-t border-gray-100">
                 <p class="text-xs text-gray-400 font-500">AgroCaua v1.0.0</p>
             </div>
         </div>

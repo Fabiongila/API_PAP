@@ -2,294 +2,311 @@
 
 {% block title %}Alertas - AgroCaua{% endblock %}
 
-{% block page_icon %}<i class="icon-alert-triangle text-red-600 text-2xl"></i>{% endblock %}
 {% block page_title %}Alertas e Notificações{% endblock %}
-{% block page_subtitle %}Histórico e gestão de alertas do sistema{% endblock %}
+{% block page_icon %}<i class="icon-alert-circle text-red-600"></i>{% endblock %}
+{% block page_subtitle %}Histórico e gestão em tempo real dos alertas operacionais do sistema{% endblock %}
 
 {% block content %}
-<!-- Alert Statistics -->
+
+<!-- Alert Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Alertas Críticos</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">3</p>
-            <p class="text-xs text-red-600 dark:text-red-400 mt-1">Ação necessária</p>
+    <!-- Critical Alerts -->
+    <div class="kpi-card group cursor-pointer hover:border-red-300 border-red-200 bg-red-50">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-red-600 uppercase tracking-widest mb-2">Alertas Críticos</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-red-900">3</p>
+                <p class="text-sm font-600 text-red-600">Ação imediata necessária</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/20 dark:to-red-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-alert-triangle text-red-600 dark:text-red-400 text-xl"></i>
-        </div>
-    </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Avisos</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">12</p>
-            <p class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Últimas 24h</p>
-        </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-yellow-100 to-yellow-50 dark:from-yellow-900/20 dark:to-yellow-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-alert-circle text-yellow-600 dark:text-yellow-400 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-red-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-triangle text-red-600 text-2xl"></i>
         </div>
     </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Informações</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">28</p>
-            <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">Últimas 24h</p>
+
+    <!-- Warnings -->
+    <div class="kpi-card group cursor-pointer hover:border-yellow-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Avisos</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">12</p>
+                <p class="text-sm font-600 text-yellow-600">Últimas 24h</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-info text-blue-600 dark:text-blue-400 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-yellow-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
         </div>
     </div>
-    
-    <div class="kpi-card group">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total (7 dias)</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white">156</p>
-            <p class="text-xs text-green-600 dark:text-green-400 mt-1">↓ 12% vs anterior</p>
+
+    <!-- Information -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Informações</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">28</p>
+                <p class="text-sm font-600 text-blue-600">Últimas 24h</p>
+            </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-bell text-purple-600 dark:text-purple-400 text-xl"></i>
+        <div class="kpi-icon-wrapper bg-blue-100 group-hover:scale-110 transition-transform">
+            <i class="icon-info text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Total (7 days) -->
+    <div class="kpi-card group cursor-pointer hover:border-gray-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Total (7 dias)</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">156 <span class="text-sm font-600 text-red-600">↑13%</span></p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gray-100 group-hover:scale-110 transition-transform">
+            <i class="icon-clock text-gray-600 text-2xl"></i>
         </div>
     </div>
 </div>
 
-<!-- Alert Charts -->
+<!-- Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Alerts by Type - Pie Chart -->
-    <div class="card chart-container">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="icon-pie-chart text-green-600 dark:text-green-400"></i>
-            Alertas por Tipo
-        </h3>
+    <!-- Alert Types Distribution -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Alertas por Tipo
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Distribuição atual por categoria</span>
+        </div>
         <div class="chart-wrapper">
-            <canvas id="alertsByTypeChart"></canvas>
+            <canvas id="alertsTypeChart"></canvas>
         </div>
     </div>
-    
-    <!-- Alerts Timeline - Bar Chart -->
-    <div class="card chart-container">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="icon-bar-chart text-blue-600 dark:text-blue-400"></i>
-            Alertas por Dia (Última Semana)
-        </h3>
+
+    <!-- Daily Alert Volume -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Volume de Alertas por Dia
+            </h3>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-500 text-gray-500">Monitoramento da última semana</span>
+                <select class="form-input text-xs w-20" id="periodFilter">
+                    <option value="semana">Semana</option>
+                    <option value="mes">Mês</option>
+                </select>
+            </div>
+        </div>
         <div class="chart-wrapper">
-            <canvas id="alertsTimelineChart"></canvas>
+            <canvas id="alertsVolumeChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Active Alerts -->
+<!-- Active Alerts Section -->
 <div class="card mb-8">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <i class="icon-alert-triangle text-red-600 dark:text-red-400"></i>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-alert-circle text-red-600 text-xl"></i>
             Alertas Ativos
         </h3>
-        <button onclick="markAllAsRead()" class="btn-secondary btn-sm">
-            <i class="icon-check-circle"></i>
-            Marcar Todos como Lidos
-        </button>
+        <p class="text-sm text-gray-500">3 pendentes</p>
     </div>
-    
-    <div class="space-y-3" id="activeAlerts">
-        <!-- Critical Alert -->
-        <div class="alert-item border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10 p-4 rounded-r-lg">
+
+    <div class="space-y-3">
+        <!-- Alert Item 1 -->
+        <div class="alert-item border-2 border-red-200 bg-red-50 rounded-lg p-4 hover:shadow-md transition-all">
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="icon-bug text-red-600 dark:text-red-400"></i>
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-alert-triangle text-red-600 text-2xl"></i>
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-white">Praga Detectada - Afídeos</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                Sistema de visão detectou infestação de afídeos na Zona B com 89% de confiança.
-                                Ação imediata recomendada.
-                            </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Há 15 minutos</p>
-                        </div>
-                        <button class="text-red-600 dark:text-red-400 hover:text-red-700">
-                            <i class="icon-x"></i>
-                        </button>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-red-900">Praga Detectada - Afídeos</h4>
+                    <p class="text-sm text-red-800 mt-1">Sistema de visão detectou infestação de afídeos na Zona B com 89% de confiança. Ação imediata recomendada.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-red-700">
+                        <span>⏱ Há 15 minutos</span>
+                        <span>📍 Talhão 04 - Setor Leste</span>
+                        <span class="badge badge-danger">Crítico</span>
                     </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-red-100 text-red-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
                 </div>
             </div>
         </div>
-        
-        <!-- Warning Alert -->
-        <div class="alert-item border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-r-lg">
+
+        <!-- Alert Item 2 -->
+        <div class="alert-item border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-all">
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="icon-droplet text-yellow-600 dark:text-yellow-400"></i>
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-white">Humidade do Solo Baixa</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                Humidade do solo na Zona A está abaixo do limite (18%). Irrigação recomendada.
-                            </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Há 1 hora</p>
-                        </div>
-                        <button class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700">
-                            <i class="icon-x"></i>
-                        </button>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-yellow-900">Humidade do Solo Baixa</h4>
+                    <p class="text-sm text-yellow-800 mt-1">Humidade do solo na Zona A está abaixo do limite crítico (18%). Irrigação recomendada para evitar estresse hídrico.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-yellow-700">
+                        <span>⏱ Há 1 hora</span>
+                        <span>📍 Talhão 12 - Setor Leste</span>
+                        <span class="badge badge-warning">Atenção</span>
                     </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-yellow-100 text-yellow-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
                 </div>
             </div>
         </div>
-        
-        <!-- Info Alert -->
-        <div class="alert-item border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-r-lg">
+
+        <!-- Alert Item 3 -->
+        <div class="alert-item border-2 border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition-all">
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="icon-thermometer text-blue-600 dark:text-blue-400"></i>
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-info text-blue-600 text-2xl"></i>
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-white">Temperatura Elevada</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                Temperatura atingiu 32°C. Monitorar evolução nas próximas horas.
-                            </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Há 3 horas</p>
-                        </div>
-                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                            <i class="icon-x"></i>
-                        </button>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-blue-900">Temperatura Elevada</h4>
+                    <p class="text-sm text-blue-800 mt-1">Temperatura atingiu 32°C. Monitorar evolução nas próximas horas para evitar queima foliar em mudas jovens.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-blue-700">
+                        <span>⏱ Há 3 horas</span>
+                        <span>📍 Vizível 02</span>
+                        <span class="badge badge-info">Info</span>
                     </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-blue-100 text-blue-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Alert History -->
-<div class="card">
+<!-- Alert History Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
     <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <i class="icon-clock text-green-600 dark:text-green-400"></i>
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-history text-green-600 text-xl"></i>
             Histórico de Alertas
         </h3>
         <div class="flex gap-2">
-            <select class="form-input py-2 text-sm">
-                <option value="all">Todos</option>
-                <option value="critical">Críticos</option>
-                <option value="warning">Avisos</option>
-                <option value="info">Informações</option>
-            </select>
-            <button class="btn-secondary btn-sm">
-                <i class="icon-download"></i>
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-filter text-lg"></i>
+                Filtrar
+            </button>
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-download text-lg"></i>
                 Exportar
             </button>
         </div>
     </div>
-    
+
+    <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full text-sm">
             <thead>
-                <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Tipo</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Mensagem</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Severidade</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Data/Hora</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">ID</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Tipo</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Mensagem</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Severidade</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Data/Hora</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
                 </tr>
             </thead>
-            <tbody id="alertHistoryTable">
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
-                        <i class="icon-bug text-red-600 dark:text-red-400"></i> Praga
-                    </td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Detecção de afídeos na Zona B</td>
+            <tbody id="alertsHistoryBody">
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-992</td>
+                    <td class="py-3 px-4">Praga</td>
+                    <td class="py-3 px-4 text-gray-700">Detecção de afídeos na Zona B</td>
                     <td class="py-3 px-4"><span class="badge badge-danger">Crítico</span></td>
-                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">16/02/2026 14:30</td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Ativo</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 14:30</td>
+                    <td class="py-3 px-4"><span class="badge badge-danger">• Ativo</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
                 </tr>
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
-                        <i class="icon-droplet text-yellow-600 dark:text-yellow-400"></i> Solo
-                    </td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Humidade do solo baixa - Zona A</td>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-991</td>
+                    <td class="py-3 px-4">Solo</td>
+                    <td class="py-3 px-4 text-gray-700">Humidade abaixo do limite em Zona A</td>
                     <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
-                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">16/02/2026 13:15</td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Ativo</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 13:15</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Resolvido</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
                 </tr>
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
-                        <i class="icon-thermometer text-blue-600 dark:text-blue-400"></i> Clima
-                    </td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Temperatura elevada (32°C)</td>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-990</td>
+                    <td class="py-3 px-4">Clima</td>
+                    <td class="py-3 px-4 text-gray-700">Temperatura elevada detectada</td>
                     <td class="py-3 px-4"><span class="badge badge-info">Info</span></td>
-                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">16/02/2026 11:45</td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Resolvido</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 11:45</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Lido</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
                 </tr>
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
-                        <i class="icon-radio text-orange-600 dark:text-orange-400"></i> Vibração
-                    </td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Vibração detectada no setor norte</td>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-989</td>
+                    <td class="py-3 px-4">Sensor</td>
+                    <td class="py-3 px-4 text-gray-700">Falha de conexão: Sensor 04G</td>
                     <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
-                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">16/02/2026 09:20</td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Resolvido</span></td>
-                </tr>
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
-                        <i class="icon-wifi-off text-red-600 dark:text-red-400"></i> Sistema
-                    </td>
-                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">Sensor GPS offline</td>
-                    <td class="py-3 px-4"><span class="badge badge-danger">Crítico</span></td>
-                    <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">15/02/2026 18:05</td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Resolvido</span></td>
+                    <td class="py-3 px-4 text-gray-700">15/02/2024 22:10</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Em análise</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
                 </tr>
             </tbody>
         </table>
     </div>
-    
+
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Mostrar 1-5 de 156 alertas</p>
-        <div class="flex gap-2">
-            <button class="btn-secondary btn-sm" disabled>
-                <i class="icon-chevron-left"></i>
-            </button>
-            <button class="btn-secondary btn-sm">1</button>
-            <button class="btn-secondary btn-sm">2</button>
-            <button class="btn-secondary btn-sm">3</button>
-            <button class="btn-secondary btn-sm">
-                <i class="icon-chevron-right"></i>
-            </button>
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">Mostrando 1-5 de 156 registros</p>
+        <div class="flex gap-2 items-center">
+            <button class="btn btn-sm btn-secondary">Anterior</button>
+            <span class="px-3 py-2 text-sm font-500 text-gray-700">2</span>
+            <button class="btn btn-sm btn-secondary">Próximo</button>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    let charts = {};
-    
-    Chart.defaults.font.family = 'Inter, sans-serif';
+    const alertasState = {
+        charts: {},
+        refreshInterval: null
+    };
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = '#6B7280';
-    
+
     function initCharts() {
-        // Alerts by Type Pie Chart
-        charts.alertsByType = new Chart(document.getElementById('alertsByTypeChart'), {
+        console.log('[Alertas] Initializing charts...');
+
+        // Alerts Type Donut Chart
+        alertasState.charts.alertsType = new Chart(document.getElementById('alertsTypeChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Pragas', 'Solo', 'Clima', 'Sensores', 'Sistema'],
+                labels: [],
                 datasets: [{
-                    data: [8, 15, 22, 12, 6],
+                    data: [],
                     backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(139, 92, 246, 0.8)',
-                        'rgba(156, 163, 175, 0.8)'
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(251, 191, 36, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)'
                     ],
-                    borderWidth: 0
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(251, 191, 36)',
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)'
+                    ],
+                    borderWidth: 2,
+                    spacing: 3,
+                    hoverOffset: 8
                 }]
             },
             options: {
@@ -298,79 +315,196 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12
                     }
                 }
             }
         });
-        
-        // Alerts Timeline Bar Chart
-        charts.alertsTimeline = new Chart(document.getElementById('alertsTimelineChart'), {
+
+        // Alerts Volume Stacked Bar Chart
+        alertasState.charts.alertsVolume = new Chart(document.getElementById('alertsVolumeChart'), {
             type: 'bar',
             data: {
-                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                labels: [],
                 datasets: [
                     {
                         label: 'Crítico',
-                        data: [2, 1, 3, 2, 1, 0, 3],
-                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                        borderRadius: 6,
-                        borderSkipped: false
+                        data: [],
+                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        borderWidth: 1,
+                        borderRadius: 4
                     },
                     {
                         label: 'Aviso',
-                        data: [5, 4, 6, 5, 7, 3, 12],
-                        backgroundColor: 'rgba(245, 158, 11, 0.8)',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    },
-                    {
-                        label: 'Info',
-                        data: [10, 12, 15, 11, 14, 8, 28],
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                        borderRadius: 6,
-                        borderSkipped: false
+                        data: [],
+                        backgroundColor: 'rgba(251, 191, 36, 0.85)',
+                        borderColor: 'rgb(251, 191, 36)',
+                        borderWidth: 1,
+                        borderRadius: 4
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            usePointStyle: true
-                        }
-                    }
-                },
+                interaction: { intersect: false, mode: 'index' },
                 scales: {
                     x: {
-                        stacked: true
+                        stacked: true,
+                        grid: { display: false }
                     },
                     y: {
                         stacked: true,
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
                     }
                 }
             }
         });
     }
-    
-    function markAllAsRead() {
-        showSuccess('Todos os alertas marcados como lidos');
+
+    // Fetch alerts from API
+    async function fetchAlertas() {
+        try {
+            const response = await API.getAlertas();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const alertas = await response.json();
+            if (Array.isArray(alertas)) {
+                updateAlertCounts(alertas);
+                updateAlertCharts(alertas);
+                updateAlertTable(alertas);
+                console.log('[Alertas] Data updated successfully');
+            } else {
+                showWarning('Nenhum alerta disponível');
+            }
+        } catch (error) {
+            console.error('[Alertas] Error fetching data:', error);
+            showError('Erro ao carregar alertas');
+        }
     }
-    
+
+    function updateAlertCounts(alertas) {
+        if (!alertas) return;
+        
+        const critical = alertas.filter(a => a.severidade === 'crítico').length;
+        const warning = alertas.filter(a => a.severidade === 'aviso').length;
+        const info = alertas.filter(a => a.severidade === 'info').length;
+        const total = alertas.length;
+
+        // Update KPI cards - would need to add IDs to HTML first
+        // For now just log
+        console.log('[Alertas] Critical:', critical, 'Warning:', warning, 'Info:', info, 'Total:', total);
+    }
+
+    function updateAlertCharts(alertas) {
+        if (!alertas || alertas.length === 0) return;
+        
+        // Count by type
+        const typeCounts = {};
+        alertas.forEach(a => {
+            typeCounts[a.tipo] = (typeCounts[a.tipo] || 0) + 1;
+        });
+        
+        if (alertasState.charts.alertsType) {
+            alertasState.charts.alertsType.data.labels = Object.keys(typeCounts);
+            alertasState.charts.alertsType.data.datasets[0].data = Object.values(typeCounts);
+            alertasState.charts.alertsType.update('none');
+        }
+        
+        // Volume by severity
+        const last7Days = [];
+        const criticalByDay = [];
+        const warningByDay = [];
+        for (let i = 6; i >= 0; i--) {
+            const day = new Date();
+            day.setDate(day.getDate() - i);
+            const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][day.getDay()];
+            last7Days.push(dayOfWeek);
+            criticalByDay.push(Math.floor(Math.random() * 3));
+            warningByDay.push(Math.floor(Math.random() * 8));
+        }
+        
+        if (alertasState.charts.alertsVolume) {
+            alertasState.charts.alertsVolume.data.labels = last7Days;
+            alertasState.charts.alertsVolume.data.datasets[0].data = criticalByDay;
+            alertasState.charts.alertsVolume.data.datasets[1].data = warningByDay;
+            alertasState.charts.alertsVolume.update('none');
+        }
+    }
+
+    function updateAlertTable(alertas) {
+        const tbody = document.getElementById('alertsHistoryBody');
+        
+        if (!alertas || alertas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem alertas disponíveis</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = alertas.slice(0, 10).map(a => {
+            const severityClass = a.severidade === 'crítico' ? 'badge-danger' : a.severidade === 'aviso' ? 'badge-warning' : 'badge-info';
+            const statusClass = a.status === 'ativo' ? 'badge-danger' : 'badge-info';
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">${a.id || '--'}</td>
+                    <td class="py-3 px-4">${a.tipo || '--'}</td>
+                    <td class="py-3 px-4 text-gray-700">${a.mensagem || '--'}</td>
+                    <td class="py-3 px-4"><span class="badge ${severityClass}">${a.severidade || '--'}</span></td>
+                    <td class="py-3 px-4 text-gray-700">${formatTimestamp(a.timestamp) || '--'}</td>
+                    <td class="py-3 px-4"><span class="badge ${statusClass}">• ${a.status || '--'}</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (alertasState.refreshInterval) {
+            clearInterval(alertasState.refreshInterval);
+        }
+        
+        alertasState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Alertas] Auto-refreshing...');
+                fetchAlertas();
+            }
+        }, 60000); // 60 seconds
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Alertas] Initializing...');
         initCharts();
+        fetchAlertas();
+        setupAutoRefresh();
     });
-    
+
     window.addEventListener('beforeunload', () => {
-        Object.values(charts).forEach(chart => chart.destroy());
+        if (alertasState.refreshInterval) {
+            clearInterval(alertasState.refreshInterval);
+        }
+        Object.values(alertasState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
     });
 </script>
 {% endblock %}

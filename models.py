@@ -43,7 +43,9 @@ class DadosIoT(db.Model):
     # GPS
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-
+    
+    localizacao = db.Column(db.String(100))
+    
     # BME280
     temperatura_ar = db.Column(db.Float)
     humidade_ar = db.Column(db.Float)

@@ -200,13 +200,13 @@
     function initCharts() {
         console.log('[Culturas] Initializing charts...');
 
-        // Growth Stage Donut Chart
+        // Growth Stage Donut Chart - Empty data initially
         culturaState.charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
             type: 'doughnut',
             data: {
                 labels: ['Germinação', 'Floração', 'Maturação', 'Repouso'],
                 datasets: [{
-                    data: [15, 25, 45, 15],
+                    data: [0, 0, 0, 0],
                     backgroundColor: [
                         'rgba(59, 130, 246, 0.85)',
                         'rgba(34, 197, 94, 0.85)',
@@ -242,14 +242,14 @@
             }
         });
 
-        // Environmental Conditions Bar Chart
+        // Environmental Conditions Bar Chart - Empty data initially
         culturaState.charts.envConditions = new Chart(document.getElementById('environmentalConditionsChart'), {
             type: 'bar',
             data: {
                 labels: ['Temperatura', 'Humidade', 'Luminosidade', 'pH Solo', 'Nutrientes'],
                 datasets: [{
                     label: 'Valor',
-                    data: [24.5, 65, 450, 6.5, 8.2],
+                    data: [0, 0, 0, 0, 0],
                     backgroundColor: [
                         'rgba(239, 68, 68, 0.85)',
                         'rgba(59, 130, 246, 0.85)',
@@ -290,7 +290,7 @@
             }
         });
 
-        // Soil Quality Trend Line Chart
+        // Soil Quality Trend Line Chart - Empty data initially
         culturaState.charts.soilTrend = new Chart(document.getElementById('soilTrendChart'), {
             type: 'line',
             data: {
@@ -298,7 +298,7 @@
                 datasets: [
                     {
                         label: 'Nível pH',
-                        data: [6.0, 6.2, 6.4, 6.5, 6.4, 6.3, 6.2],
+                        data: [0, 0, 0, 0, 0, 0, 0],
                         borderColor: 'rgb(251, 191, 36)',
                         backgroundColor: 'rgba(251, 191, 36, 0.08)',
                         borderWidth: 2.5,
@@ -312,7 +312,7 @@
                     },
                     {
                         label: 'Humidade (%)',
-                        data: [55, 60, 62, 65, 68, 70, 72],
+                        data: [0, 0, 0, 0, 0, 0, 0],
                         borderColor: 'rgb(59, 130, 246)',
                         backgroundColor: 'rgba(59, 130, 246, 0.08)',
                         borderWidth: 2.5,
@@ -326,7 +326,7 @@
                     },
                     {
                         label: 'Nutrientes (índice)',
-                        data: [7.5, 7.8, 8.2, 8.5, 8.8, 9.0, 9.2],
+                        data: [0, 0, 0, 0, 0, 0, 0],
                         borderColor: 'rgb(34, 197, 94)',
                         backgroundColor: 'rgba(34, 197, 94, 0.08)',
                         borderWidth: 2.5,
@@ -370,25 +370,47 @@
     }
 
     function updateKPIs(data) {
-        if (!data || data.length === 0) return;
+        // Only update KPIs if we have real data from API
+        if (!data || data.length === 0) {
+            // Show zeros/dashes when no data is available
+            document.getElementById('healthIndex').textContent = '0';
+            document.getElementById('cultivatedArea').textContent = '0';
+            document.getElementById('harvestDays').textContent = '0';
+            document.getElementById('estimatedProduction').textContent = '0';
+            return;
+        }
         
         const latest = data[0];
         
-        // Calculate health index based on sensor data
-        let healthScore = 85; // Default
-        if (latest.bme280?.temperatura != null) {
+        // Calculate health index based on sensor data if available
+        let healthScore = 0;
+        let hasValidBMEData = false;
+        
+        if (latest.bme280?.temperatura != null && latest.bme280?.humidade != null) {
+            hasValidBMEData = true;
             const temp = latest.bme280.temperatura;
-            if (temp >= 15 && temp <= 30) healthScore = Math.min(100, healthScore + 5);
-        }
-        if (latest.bme280?.humidade != null) {
             const humidity = latest.bme280.humidade;
-            if (humidity >= 40 && humidity <= 70) healthScore = Math.min(100, healthScore + 5);
+            
+            // Calculate health score based on optimal ranges
+            let score = 50; // Base score
+            if (temp >= 15 && temp <= 30) score += 25; // Optimal temperature
+            if (humidity >= 40 && humidity <= 70) score += 25; // Optimal humidity
+            healthScore = Math.round(score);
         }
         
-        document.getElementById('healthIndex').textContent = Math.round(healthScore) + '%';
-        document.getElementById('cultivatedArea').textContent = '12.5 ha';
-        document.getElementById('harvestDays').textContent = '42 dias';
-        document.getElementById('estimatedProduction').textContent = '8.4 t';
+        // Display KPI values only if we have valid sensor data
+        // Note: cultivatedArea, harvestDays, and estimatedProduction are derived from crop data
+        // which is not available in the current API, so we show 0 as placeholder
+        if (hasValidBMEData) {
+            document.getElementById('healthIndex').textContent = healthScore + '%';
+        } else {
+            document.getElementById('healthIndex').textContent = '0';
+        }
+        
+        // These values should come from crop management data (not in current API)
+        document.getElementById('cultivatedArea').textContent = '0';
+        document.getElementById('harvestDays').textContent = '0';
+        document.getElementById('estimatedProduction').textContent = '0';
     }
 
     function updateZonesTable(data) {

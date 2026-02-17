@@ -24,7 +24,7 @@ def receber_dados():
     # timestamp (opcional, padrão: ISO8601 atual)
     timestamp = dados.get('timestamp')
     if timestamp is None:
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.utcnow()
     elif not isinstance(timestamp, str):
         erros.append("timestamp deve ser string ISO8601")
 
@@ -41,6 +41,20 @@ def receber_dados():
             longitude = float(longitude)
         except (TypeError, ValueError):
             erros.append("gps.latitude e gps.longitude devem ser numéricos")
+            
+    
+    
+    localizacao = dados.get('localizacao')
+
+    if not isinstance(localizacao, dict):
+        erros.append("localizacao deve ser objeto")
+    else:
+        localizacao = localizacao.get("localizacao")
+        if not localizacao:
+            erros.append("localizacao obrigatória")
+
+    
+                    
 
     # bme280 (opcional)
     bme = dados.get('bme280') or {}
@@ -88,24 +102,24 @@ def receber_dados():
         erros.append("vibracao deve ser objeto")
 
     # visao (opcional)
-    visao = dados.get('visao') or {}
-    detecao_praga = tipo_praga = confianca = None
-    if isinstance(visao, dict):
-        if 'detecao_praga' in visao:
-            detecao_praga = bool(visao['detecao_praga'])
-        if 'tipo_praga' in visao:
-            if visao['tipo_praga'] is not None and not isinstance(visao['tipo_praga'], str):
-                erros.append("visao.tipo_praga deve ser string ou null")
-            else:
-                tipo_praga = visao['tipo_praga']
-        if 'confianca' in visao:
-            try:
-                if visao['confianca'] is not None:
-                    confianca = float(visao['confianca'])
-            except (TypeError, ValueError):
-                erros.append("visao.confianca deve ser numérico ou null")
-    elif visao is not None:
-        erros.append("visao deve ser objeto")
+    #visao = dados.get('visao') or {}
+    #detecao_praga = tipo_praga = confianca = None
+    #if isinstance(visao, dict):
+     #   if 'detecao_praga' in visao:
+      #      detecao_praga = bool(visao['detecao_praga'])
+       # if 'tipo_praga' in visao:
+        #    if visao['tipo_praga'] is not None and not isinstance(visao['tipo_praga'], str):
+         #       erros.append("visao.tipo_praga deve ser string ou null")
+          #  else:
+           #     tipo_praga = visao['tipo_praga']
+    #    if 'confianca' in visao:
+     #       try:
+      #          if visao['confianca'] is not None:
+       #             confianca = float(visao['confianca'])
+        #    except (TypeError, ValueError):
+         #       erros.append("visao.confianca deve ser numérico ou null")
+    #elif visao is not None:
+     #   erros.append("visao deve ser objeto")
 
     # Se houver erros de validação, retornar 400 com detalhes
     if erros:
@@ -116,14 +130,15 @@ def receber_dados():
         timestamp=timestamp,
         latitude=latitude,
         longitude=longitude,
+        localizacao=localizacao,
         temperatura_ar=temperatura_ar,
         humidade_ar=humidade_ar,
         pressao_ar=pressao_ar,
         humidade_solo=humidade_solo,
-        vibracao=vibracao,
-        detecao_praga=detecao_praga,
-        tipo_praga=tipo_praga,
-        confianca=confianca
+        vibracao=vibracao
+        #detecao_praga=detecao_praga,
+        #tipo_praga=tipo_praga,
+        #confianca=confianca
     )
 
     try:
@@ -159,6 +174,10 @@ def listar_dados():
                 "latitude": r.latitude,
                 "longitude": r.longitude
             },
+            
+            "localizacao":{
+                "localizacao": r.localizacao
+            },
 
             "bme280": {
                 "temperatura": r.temperatura_ar,
@@ -174,11 +193,11 @@ def listar_dados():
                 "detectada": r.vibracao
             },
 
-            "visao": {
-                "detecao_praga": r.detecao_praga,
-                "tipo_praga": r.tipo_praga,
-                "confianca": r.confianca
-            }
+            #"visao": {
+             #   "detecao_praga": r.detecao_praga,
+              #  "tipo_praga": r.tipo_praga,
+               # "confianca": r.confianca
+           # }
         })
 
     return jsonify(resultado), 200
@@ -265,24 +284,24 @@ def listar_vibracao():
 
 
 # Rotas para listar dados específico (Visão computacional)
-@api_routes.route('/api/visao', methods=['GET'])
-def listar_visao():
-    r = DadosIoT.query.order_by(DadosIoT.id.desc()).first()
-    if not r:
-        return jsonify({"erro": "Nenhum registro encontrado"}), 404
+#@api_routes.route('/api/visao', methods=['GET'])
+#def listar_visao():
+ #   r = DadosIoT.query.order_by(DadosIoT.id.desc()).first()
+  #  if not r:
+   #     return jsonify({"erro": "Nenhum registro encontrado"}), 404
 
-    resultado = {
-        "id": r.id,
-        "device_id": r.device_id,
-        "timestamp": r.timestamp,
-        "visao": {
-            "detecao_praga": r.detecao_praga,
-            "tipo_praga": r.tipo_praga,
-            "confianca": r.confianca
-        }
-    }
+    #resultado = {
+     #   "id": r.id,
+      #  "device_id": r.device_id,
+       # "timestamp": r.timestamp,
+        #"visao": {
+         #   "detecao_praga": r.detecao_praga,
+          #  "tipo_praga": r.tipo_praga,
+    #        "confianca": r.confianca
+     #   }
+    #}
 
-    return jsonify(resultado), 200
+    #return jsonify(resultado), 200
 
 
 # Rotas para gerar alertas baseado nos dados
@@ -294,15 +313,15 @@ def listar_alertas():
 
     for r in registros:
         # Gerar alertas baseado nas condições dos dados
-        if r.detecao_praga == True:
-            resultado.append({
-                "id": f"ALT-{r.id}-praga",
-                "tipo": "Praga",
-                "mensagem": f"Detecção de praga: {r.tipo_praga or 'desconhecida'}",
-                "severidade": "crítico" if r.confianca and r.confianca > 0.8 else "aviso",
-                "timestamp": r.timestamp,
-                "status": "ativo"
-            })
+        #if r.detecao_praga == True:
+         #   resultado.append({
+          #      "id": f"ALT-{r.id}-praga",
+           #     "tipo": "Praga",
+        #    #    "mensagem": f"Detecção de praga: {r.tipo_praga or 'desconhecida'}",
+         #       "severidade": "crítico" if r.confianca and r.confianca > 0.8 else "aviso",
+          #      "timestamp": r.timestamp,
+           #     "status": "ativo"
+           # })
 
         if r.humidade_solo is not None and r.humidade_solo < 30:
             resultado.append({

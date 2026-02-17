@@ -488,10 +488,6 @@
     height: calc(0.25rem * 12);
     height: calc(var(--spacing) * 12);
   }
-  .h-96 {
-    height: calc(0.25rem * 96);
-    height: calc(var(--spacing) * 96);
-  }
   .h-screen {
     height: 100vh;
   }

@@ -1,8 +1,6 @@
 <aside 
     class="sidebar bg-white border-r border-gray-200" 
-    x-data="{ mobileOpen: false }"
     :class="{ 'open': mobileOpen }"
-    @click.away="mobileOpen = false"
 >
     <div class="h-screen flex flex-col overflow-hidden">
 
@@ -104,33 +102,3 @@
         
     </div>
 </aside>
-
-<!-- Mobile Hamburger Button (shown on mobile via Tailwind) -->
-<div class="fixed top-4 left-4 z-50 md:hidden">
-    <button 
-        @click="mobileOpen = !mobileOpen"
-        class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-    >
-        <i class="icon-menu text-gray-600"></i>
-    </button>
-</div>
-
-<script>
-    async function handleLogout() {
-        if (confirm('Tem a certeza que deseja terminar a sessão?')) {
-            try {
-                await API.logout();
-                clearToken();
-                showSuccess('Sessão terminada com sucesso');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 800);
-            } catch (error) {
-                console.error('Logout error:', error);
-                // Force logout even if API fails
-                clearToken();
-                window.location.href = '/login';
-            }
-        }
-    }
-</script>

@@ -334,15 +334,15 @@
                         <form class="space-y-4">
                             <div>
                                 <label class="form-label">Palavra-passe Atual</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
+                                <input type="password" class="form-input" id="currentPassword" placeholder="••••••••">
                             </div>
                             <div>
                                 <label class="form-label">Nova Palavra-passe</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
+                                <input type="password" class="form-input" id="newPassword" placeholder="••••••••">
                             </div>
                             <div>
                                 <label class="form-label">Confirmar Nova Palavra-passe</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
+                                <input type="password" class="form-input" id="confirmPassword" placeholder="••••••••">
                             </div>
                             <button type="submit" class="btn-primary">
                                 <i class="icon-key"></i>
@@ -410,6 +410,7 @@
                 const userData = await response.json();
                 document.getElementById('profileNome').value = userData.nome || 'Utilizador';
                 document.getElementById('profileEmail').value = userData.email || 'user@example.com';
+                document.getElementById('profileNome').removeAttribute('readonly');
                 console.log('[Config] User profile loaded');
             }
         } catch (error) {
@@ -417,9 +418,51 @@
         }
     }
 
+    // Save profile
+    async function saveProfile(e) {
+        e.preventDefault();
+        const nome = document.getElementById('profileNome').value.trim();
+        try {
+            const res = await API.updateProfile({ nome });
+            if (res.ok) {
+                showSuccess('Perfil guardado com sucesso!');
+            } else {
+                const d = await res.json();
+                showError(d.erro || 'Erro ao guardar perfil');
+            }
+        } catch { showError('Erro de ligação ao servidor'); }
+    }
+
+    // Change password
+    async function changePassword(e) {
+        e.preventDefault();
+        const pw  = document.getElementById('newPassword')?.value || '';
+        const pw2 = document.getElementById('confirmPassword')?.value || '';
+        if (!pw) { showError('Insira a nova palavra-passe'); return; }
+        if (pw !== pw2) { showError('As palavras-passe não coincidem'); return; }
+        if (pw.length < 6) { showError('A palavra-passe deve ter pelo menos 6 caracteres'); return; }
+        try {
+            const res = await API.updateProfile({ password: pw });
+            if (res.ok) {
+                showSuccess('Palavra-passe alterada com sucesso!');
+                if (document.getElementById('newPassword')) document.getElementById('newPassword').value = '';
+                if (document.getElementById('confirmPassword')) document.getElementById('confirmPassword').value = '';
+            } else {
+                const d = await res.json();
+                showError(d.erro || 'Erro ao alterar palavra-passe');
+            }
+        } catch { showError('Erro de ligação ao servidor'); }
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         loadUserProfile();
+        // Ligar botão guardar perfil
+        const profileForm = document.querySelector('#section-perfil form, #section-profile form');
+        if (profileForm) profileForm.addEventListener('submit', saveProfile);
+        // Ligar botão alterar password
+        const pwForm = document.querySelector('#section-seguranca form, #section-security form');
+        if (pwForm) pwForm.addEventListener('submit', changePassword);
     });
 </script>
 {% endblock %}

@@ -389,6 +389,16 @@
         }
     </script>
 
+    <!-- Admin shortcut: Shift+Ctrl+A -->
+    <script>
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'A') {
+                e.preventDefault();
+                window.location.href = '/admin';
+            }
+        });
+    </script>
+
     <script>
         function globalCleanup() {
             if (typeof Chart !== 'undefined' && Chart.helpers && Chart.helpers.each) {

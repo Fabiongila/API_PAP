@@ -94,11 +94,6 @@ def home():
     """Landing page"""
     return render_template('landing.html')
 
-@auth_pages_bp.route('/admin/login')
-def admin_login():
-    """Super Admin login page"""
-    return render_template('auth/superadmin_login.html')
-
 @auth_pages_bp.route('/admin')
 def admin():
     """Super Admin panel"""
@@ -107,7 +102,11 @@ def admin():
 @auth_pages_bp.route('/admin/farm')
 def farm_admin():
     """Farm Admin panel"""
-    return render_template('admin/farm_admin.html')
+    from flask import make_response
+    resp = make_response(render_template('admin/farm_admin.html'))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 @auth_pages_bp.route('/admin/normal')
 def admin_normal():

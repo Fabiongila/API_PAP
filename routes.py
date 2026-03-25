@@ -1,7 +1,21 @@
 from flask import Blueprint, request, jsonify
-from datetime import datetime
-from models import db, DadosIoT
+from datetime import datetime, timezone
+from models import db, DadosIoT, Previsao
 from sqlalchemy.exc import SQLAlchemyError
+import sys
+import os
+
+# Adicionar caminhos para ML
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ML'))
+
+# Import ML predictor
+try:
+    from ML.predictor import fazer_prevensoes
+    ML_DISPONIVEL = True
+except ImportError as e:
+    print(f"⚠ Aviso: ML não disponível (durante importação de routes) - {e}")
+    ML_DISPONIVEL = False
 
 api_routes = Blueprint('api', __name__)
 
@@ -24,8 +38,14 @@ def receber_dados():
     # timestamp (opcional, padrão: ISO8601 atual)
     timestamp = dados.get('timestamp')
     if timestamp is None:
-        timestamp = datetime.utcnow()
-    elif not isinstance(timestamp, str):
+        timestamp = datetime.now(timezone.utc)
+    elif isinstance(timestamp, str):
+        try:
+            # Converter ISO8601 string para datetime
+            timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            erros.append("timestamp deve ser ISO8601 válido (ex: 2026-03-09T10:30:45.123456)")
+    else:
         erros.append("timestamp deve ser string ISO8601")
 
     # gps (obrigatório)
@@ -151,9 +171,61 @@ def receber_dados():
         db.session.rollback()
         return jsonify({"erro": "Erro interno ao salvar"}), 500
 
+    # ===== FAZER PREVISÕES COM ML =====
+    previsoes_resultado = {}
+    if ML_DISPONIVEL:
+        try:
+            # Buscar últimos N registros de TODOS os sensores para agregação
+            ultimos_registros = DadosIoT.query.order_by(DadosIoT.timestamp.desc()).limit(20).all()
+            
+            # Preparar lista com dados históricos
+            dados_historico = []
+            if ultimos_registros:
+                for reg in ultimos_registros:
+                    dados_historico.append({
+                        'temperatura_ar': reg.temperatura_ar,
+                        'humidade_ar': reg.humidade_ar,
+                        'pressao_ar': reg.pressao_ar,
+                        'humidade_solo': reg.humidade_solo
+                    })
+            
+            # Adicionar dados atuais também
+            dados_atuais = {
+                'temperatura_ar': temperatura_ar or 20.0,
+                'humidade_ar': humidade_ar or 60.0,
+                'pressao_ar': pressao_ar or 1013.0,
+                'humidade_solo': humidade_solo or 50.0
+            }
+            dados_historico.insert(0, dados_atuais)
+            
+            # Obter previsões com agregação de múltiplos sensores
+            if dados_historico:
+                previsoes_resultado = fazer_prevensoes(dados_lista=dados_historico)
+            else:
+                # Fallback para sensor único se não houver histórico
+                previsoes_resultado = fazer_prevensoes(dados_sensor=dados_atuais)
+            
+            if previsoes_resultado.get('sucesso', False):
+                # Guardar previsões no BD
+                prever = Previsao(
+                    dados_iot_id=record.id,
+                    praga_detectada=previsoes_resultado['pragas']['detectada'],
+                    tipo_praga=previsoes_resultado['pragas']['tipo'],
+                    confianca_praga=previsoes_resultado['pragas']['confianca'],
+                    temperatura_prevista=previsoes_resultado['clima_futuro']['temperatura_prevista'],
+                    humidade_prevista=previsoes_resultado['clima_futuro']['humidade_prevista']
+                )
+                db.session.add(prever)
+                db.session.commit()
+        except Exception as e:
+            print(f"Erro ao processar ML: {e}")
+            previsoes_resultado = {"aviso": "Previsões não disponíveis"}
+
     return jsonify({
         "status": "sucesso",
-        "mensagem": "Dados recebidos e armazenados"
+        "mensagem": "Dados recebidos e armazenados",
+        "dados_id": record.id,
+        "previsoes": previsoes_resultado
     }), 201
 
 
@@ -283,74 +355,4 @@ def listar_vibracao():
     return jsonify(resultado), 200
 
 
-# Rotas para listar dados específico (Visão computacional)
-#@api_routes.route('/api/visao', methods=['GET'])
-#def listar_visao():
- #   r = DadosIoT.query.order_by(DadosIoT.id.desc()).first()
-  #  if not r:
-   #     return jsonify({"erro": "Nenhum registro encontrado"}), 404
 
-    #resultado = {
-     #   "id": r.id,
-      #  "device_id": r.device_id,
-       # "timestamp": r.timestamp,
-        #"visao": {
-         #   "detecao_praga": r.detecao_praga,
-          #  "tipo_praga": r.tipo_praga,
-    #        "confianca": r.confianca
-     #   }
-    #}
-
-    #return jsonify(resultado), 200
-
-
-# Rotas para gerar alertas baseado nos dados
-@api_routes.route('/api/alertas', methods=['GET'])
-def listar_alertas():
-    registros = DadosIoT.query.order_by(DadosIoT.id.desc()).limit(100).all()
-
-    resultado = []
-
-    for r in registros:
-        # Gerar alertas baseado nas condições dos dados
-        #if r.detecao_praga == True:
-         #   resultado.append({
-          #      "id": f"ALT-{r.id}-praga",
-           #     "tipo": "Praga",
-        #    #    "mensagem": f"Detecção de praga: {r.tipo_praga or 'desconhecida'}",
-         #       "severidade": "crítico" if r.confianca and r.confianca > 0.8 else "aviso",
-          #      "timestamp": r.timestamp,
-           #     "status": "ativo"
-           # })
-
-        if r.humidade_solo is not None and r.humidade_solo < 30:
-            resultado.append({
-                "id": f"ALT-{r.id}-solo",
-                "tipo": "Solo",
-                "mensagem": f"Humidade do solo baixa: {r.humidade_solo:.1f}%",
-                "severidade": "crítico",
-                "timestamp": r.timestamp,
-                "status": "ativo"
-            })
-
-        if r.temperatura_ar is not None and (r.temperatura_ar < 15 or r.temperatura_ar > 35):
-            resultado.append({
-                "id": f"ALT-{r.id}-temp",
-                "tipo": "Clima",
-                "mensagem": f"Temperatura fora dos limites: {r.temperatura_ar:.1f}°C",
-                "severidade": "aviso",
-                "timestamp": r.timestamp,
-                "status": "ativo"
-            })
-
-        if r.vibracao == True:
-            resultado.append({
-                "id": f"ALT-{r.id}-vib",
-                "tipo": "Sensor",
-                "mensagem": "Vibração detectada no equipamento",
-                "severidade": "aviso",
-                "timestamp": r.timestamp,
-                "status": "ativo"
-            })
-
-    return jsonify(resultado), 200

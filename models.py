@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -16,7 +16,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
 
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # ---------- PASSWORD ----------
     def set_password(self, password: str):
@@ -38,7 +38,7 @@ class DadosIoT(db.Model):
 
     # Identificação
     device_id = db.Column(db.String(50), nullable=False, index=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # GPS
     latitude = db.Column(db.Float, nullable=False)
@@ -64,3 +64,30 @@ class DadosIoT(db.Model):
 
     def __repr__(self):
         return f"<DadosIoT {self.device_id} {self.timestamp}>"
+
+
+# =====================================================
+# PREVISÕES ML
+# =====================================================
+class Previsao(db.Model):
+    __tablename__ = "previsoes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Link ao dado original
+    dados_iot_id = db.Column(db.Integer, db.ForeignKey('dados_iot.id'), nullable=False)
+    
+    # Previsão de Pragas
+    praga_detectada = db.Column(db.Boolean, default=False)
+    tipo_praga = db.Column(db.String(100))
+    confianca_praga = db.Column(db.Float)  # 0 a 1
+    
+    # Previsão de Condições Futuras (24h)
+    temperatura_prevista = db.Column(db.Float)
+    humidade_prevista = db.Column(db.Float)
+    
+    # Metadata
+    data_criacao = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def __repr__(self):
+        return f"<Previsao {self.id} - Praga: {self.praga_detectada}>"

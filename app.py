@@ -1,69 +1,3 @@
-<<<<<<< HEAD
-from flask import Flask
-from models import db
-from routes import api_routes
-from config import Config
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-import os
-
-# Importar blueprints
-try:
-    from auth_routes import auth_bp, blacklist
-except Exception as e:
-    print(f"Error importing auth_routes: {e}")
-    auth_bp = None
-    blacklist = set()
-
-try:
-    from dashboard_routes import dashboard_bp, auth_pages_bp
-except Exception as e:
-    print(f"Error importing dashboard_routes: {e}")
-    dashboard_bp = None
-    auth_pages_bp = None
-
-app = Flask(__name__)
-app.config.from_object(Config)
-CORS(app)
-
-# INIT DB
-db.init_app(app)
-
-# JWT
-jwt = JWTManager(app)
-
-@jwt.token_in_blocklist_loader
-def check_if_token_revoked(jwt_header, jwt_payload):
-    jti = jwt_payload.get("jti")
-    return jti in blacklist
-
-# BLUEPRINTS
-# API routes
-if auth_bp:
-    app.register_blueprint(auth_bp)
-app.register_blueprint(api_routes)
-
-# Frontend routes
-if auth_pages_bp:
-    app.register_blueprint(auth_pages_bp)
-if dashboard_bp:
-    app.register_blueprint(dashboard_bp)
-
-# Debug: Print all registered routes
-print("\n=== REGISTERED ROUTES ===")
-for rule in app.url_map.iter_rules():
-    print(f"{rule.rule} -> {rule.endpoint}")
-print("=== END ROUTES ===\n")
-
-with app.app_context():
-    db.create_all()
-
-
-# RUN
-if __name__ == "__main__":
-    port = int(os.environ   .get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
-=======
 from flask import Flask
 from models import db
 from routes import api_routes
@@ -96,6 +30,31 @@ app.register_blueprint(admin_api_bp)
 
 with app.app_context():
     db.create_all()
+
+    # ── Migração: adicionar colunas novas à tabela mensagens se não existirem ──
+    from sqlalchemy import text, inspect as sa_inspect
+    try:
+        inspector = sa_inspect(db.engine)
+        if inspector.has_table('mensagens'):
+            existing_cols = [c['name'] for c in inspector.get_columns('mensagens')]
+            migrations = [
+                ("origem",         "VARCHAR(30) DEFAULT 'dashboard'"),
+                ("telefone",       "VARCHAR(30)"),
+                ("nome_contacto",  "VARCHAR(150)"),
+                ("email_contacto", "VARCHAR(200)"),
+            ]
+            for col_name, col_def in migrations:
+                if col_name not in existing_cols:
+                    try:
+                        with db.engine.connect() as conn:
+                            conn.execute(text(f"ALTER TABLE mensagens ADD COLUMN {col_name} {col_def}"))
+                            conn.commit()
+                        print(f"[Migration] Coluna '{col_name}' adicionada a mensagens.")
+                    except Exception as e:
+                        print(f"[Migration] Aviso ao adicionar coluna {col_name}: {e}")
+    except Exception as e:
+        print(f"[Migration] Erro na verificacao de colunas: {e}")
+
     # Garantir que existe sempre pelo menos um superadmin
     from models import User
     if not User.query.filter_by(email="admin@agrocaua.com").first():
@@ -107,4 +66,3 @@ with app.app_context():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
->>>>>>> 955b517415ac3a61e71d7f17f5e1d348940e4c1e

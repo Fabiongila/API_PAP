@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timezone
 from models import db, DadosIoT, Previsao
@@ -15,7 +15,7 @@ try:
     from ML.predictor import fazer_prevensoes
     ML_DISPONIVEL = True
 except ImportError as e:
-    print(f"⚠ Aviso: ML não disponível (durante importação de routes) - {e}")
+    print(f"Aviso: ML nao disponivel - {e}")
     ML_DISPONIVEL = False
 
 api_routes = Blueprint('api', __name__)
@@ -357,7 +357,6 @@ def listar_vibracao():
 
 
 
-=======
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from models import db, DadosIoT
@@ -564,4 +563,4 @@ def listar_alertas():
                 "mensagem": "Vibração detectada no equipamento",
                 "severidade": "aviso", "timestamp": r.timestamp, "status": "ativo"})
     return jsonify(resultado), 200
->>>>>>> 955b517415ac3a61e71d7f17f5e1d348940e4c1e
+

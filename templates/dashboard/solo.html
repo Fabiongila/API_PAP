@@ -8,6 +8,15 @@
 
 {% block content %}
 
+<!-- Alert Banner -->
+<div id="soloBanner" class="rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 hidden">
+    <i id="soloBannerIcon" class="text-2xl flex-shrink-0 mt-0.5"></i>
+    <div>
+        <p class="font-semibold text-sm" id="soloBannerTitle"></p>
+        <p class="text-xs mt-0.5" id="soloBannerMsg"></p>
+    </div>
+</div>
+
 <!-- Soil Metrics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <!-- Current Humidity -->
@@ -16,9 +25,9 @@
             <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Humidade Atual</p>
             <div class="flex items-baseline gap-2">
                 <p class="text-2xl font-bold text-gray-900" id="currentHumidity">--%</p>
-                <p class="text-sm font-600 text-gray-500" id="humidityStatus">Carregando...</p>
+                <span class="badge badge-info text-xs" id="humidityStatus">--</span>
             </div>
-            <p class="text-xs text-gray-500 mt-2" id="humidityNote">Carregando dados do sensor...</p>
+            <p class="text-xs text-gray-500 mt-2" id="humidityNote">A carregar dados do sensor...</p>
         </div>
         <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform">
             <i class="icon-droplet text-blue-600 text-2xl"></i>
@@ -30,10 +39,10 @@
         <div class="flex-1">
             <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Saúde do Solo</p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">88/100</p>
-                <p class="text-sm font-600 text-green-600">Ideal</p>
+                <p class="text-2xl font-bold text-gray-900" id="soilHealthScore">--/100</p>
+                <span class="badge badge-success text-xs" id="soilHealthLabel">--</span>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Atividade microbiana e níveis de oxigenação em parâmetros excelentes.</p>
+            <p class="text-xs text-gray-500 mt-2" id="soilHealthNote">A calcular com base nos sensores...</p>
         </div>
         <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
             <i class="icon-zap text-green-600 text-2xl"></i>
@@ -43,12 +52,12 @@
     <!-- Stress Risk -->
     <div class="kpi-card group cursor-pointer hover:border-amber-300">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Risco de Estresse</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Risco de Estresse Hídrico</p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">Baixo</p>
-                <p class="text-sm font-600 text-amber-600">Ideal</p>
+                <p class="text-2xl font-bold text-gray-900" id="stressRisk">--</p>
+                <span class="badge badge-success text-xs" id="stressRiskBadge">--</span>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Sem previsão de déficit hídrico para as próximas 48 horas.</p>
+            <p class="text-xs text-gray-500 mt-2" id="stressRiskNote">A analisar tendência...</p>
         </div>
         <div class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform">
             <i class="icon-alert-circle text-amber-600 text-2xl"></i>
@@ -158,23 +167,23 @@
 
 <!-- Historical Readings Table -->
 <div class="card group hover:shadow-lg transition-all duration-300">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <i class="icon-history text-green-600 text-xl"></i>
             Histórico de Leituras
         </h3>
-        <p class="text-sm text-gray-500">Últimas 15 medições capturadas pelos sensores de profundidade</p>
+        <p class="text-xs text-gray-500">Últimas medições dos sensores de solo</p>
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-200 bg-gray-50">
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Humidade</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Recomendação</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Temp. Solo</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hora</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Humidade</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Zona</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Acção Recomendada</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Risco Pragas</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Hora</th>
                 </tr>
             </thead>
             <tbody id="soilReadingsBody">
@@ -287,25 +296,135 @@
         }
     }
 
+    // ── Interpretation helpers ──────────────────────────────────────────────
+    function interpretSoilHumidity(h) {
+        if (h == null) return {
+            label: '--', badgeClass: 'badge-info',
+            action: 'Sem dados.', pestRisk: '--', pestClass: 'badge-info',
+            stressLabel: '--', stressBadge: 'badge-info', stressNote: 'Aguardando leitura...'
+        };
+        if (h < 20) return {
+            label: 'Seco Crítico', badgeClass: 'badge-danger',
+            action: 'Irrigação urgente! Solo extremamente seco — risco de morte das plantas.',
+            pestRisk: 'Baixo', pestClass: 'badge-success',
+            stressLabel: 'Crítico', stressBadge: 'badge-danger',
+            stressNote: `${h.toFixed(0)}% — Solo muito seco. Raízes sem acesso a água. Irrigação imediata necessária.`
+        };
+        if (h < 30) return {
+            label: 'Seco', badgeClass: 'badge-danger',
+            action: 'Irrigar imediatamente. Défice hídrico afeta absorção de nutrientes.',
+            pestRisk: 'Baixo', pestClass: 'badge-success',
+            stressLabel: 'Alto', stressBadge: 'badge-warning',
+            stressNote: `${h.toFixed(0)}% — Abaixo do limiar crítico. Irrigue 15–20 mm nas próximas horas.`
+        };
+        if (h < 40) return {
+            label: 'Atenção', badgeClass: 'badge-warning',
+            action: 'Planificar irrigação em breve. Solo em zona de alerta.',
+            pestRisk: 'Baixo', pestClass: 'badge-success',
+            stressLabel: 'Médio', stressBadge: 'badge-warning',
+            stressNote: `${h.toFixed(0)}% — Zona de alerta. Programe irrigação preventiva.`
+        };
+        if (h <= 60) return {
+            label: 'Ideal', badgeClass: 'badge-success',
+            action: 'Solo em condições óptimas. Manter monitoramento.',
+            pestRisk: 'Baixo', pestClass: 'badge-success',
+            stressLabel: 'Baixo', stressBadge: 'badge-success',
+            stressNote: `${h.toFixed(0)}% — Zona ótima (40–60%). Disponibilidade máxima de nutrientes para as plantas.`
+        };
+        if (h <= 80) return {
+            label: 'Elevado', badgeClass: 'badge-warning',
+            action: 'Suspender irrigação. Verificar drenagem do solo.',
+            pestRisk: 'Médio', pestClass: 'badge-warning',
+            stressLabel: 'Baixo', stressBadge: 'badge-success',
+            stressNote: `${h.toFixed(0)}% — Humidade acima do ideal. Risco de compactação e fungos radiculares.`
+        };
+        return {
+            label: 'Saturado', badgeClass: 'badge-danger',
+            action: 'Solo saturado! Risco de podridão radicular e lixiviação de nutrientes.',
+            pestRisk: 'Alto', pestClass: 'badge-danger',
+            stressLabel: 'Médio', stressBadge: 'badge-warning',
+            stressNote: `${h.toFixed(0)}% — Excesso de água. Melhore a drenagem. Alto risco de fungos e doenças radiculares.`
+        };
+    }
+
+    function calcSoilHealthScore(humidity) {
+        if (humidity == null) return { score: null, label: '--', badgeClass: 'badge-info', note: 'Aguardando dados do sensor.' };
+        // Score 0–100 based on distance from ideal zone centre (50%)
+        const ideal = 50;
+        const dist = Math.abs(humidity - ideal);
+        const score = Math.max(0, Math.round(100 - dist * 2));
+        let label, badgeClass, note;
+        if (score >= 80) {
+            label = 'Excelente'; badgeClass = 'badge-success';
+            note = 'Solo com boa estrutura e humidade óptima para atividade microbiana.';
+        } else if (score >= 60) {
+            label = 'Bom'; badgeClass = 'badge-success';
+            note = 'Condições favoráveis. Pequenos ajustes podem maximizar a produtividade.';
+        } else if (score >= 40) {
+            label = 'Razoável'; badgeClass = 'badge-warning';
+            note = 'Solo com limitações. Corrija humidade para melhorar absorção de nutrientes.';
+        } else {
+            label = 'Fraco'; badgeClass = 'badge-danger';
+            note = 'Solo em má condição. Intervenção necessária: irrigação ou drenagem.';
+        }
+        return { score, label, badgeClass, note };
+    }
+
+    function updateSoloBanner(humidity) {
+        const banner = document.getElementById('soloBanner');
+        const si = interpretSoilHumidity(humidity);
+        let color = null, icon = null;
+
+        if (si.badgeClass === 'badge-danger') {
+            color = 'bg-red-50 border-red-500 text-red-800';
+            icon = 'icon-alert-triangle text-red-600';
+        } else if (si.badgeClass === 'badge-warning') {
+            color = 'bg-amber-50 border-amber-400 text-amber-800';
+            icon = 'icon-info text-amber-600';
+        }
+
+        if (color) {
+            banner.className = `rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 ${color}`;
+            document.getElementById('soloBannerIcon').className = `text-2xl flex-shrink-0 mt-0.5 ${icon}`;
+            document.getElementById('soloBannerTitle').textContent = `Solo: ${si.label}`;
+            document.getElementById('soloBannerMsg').textContent = si.action;
+            banner.classList.remove('hidden');
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     function updateKPIs(data) {
         if (!data || data.length === 0) return;
-        
+
         const latest = data[0];
-        
-        // Current Humidity
-        if (latest.solo?.humidade != null) {
-            const humidity = latest.solo.humidade;
-            document.getElementById('currentHumidity').textContent = humidity.toFixed(0) + '%';
-            
-            // Status based on humidity level
-            let status = 'Ideal';
-            if (humidity < 30) status = 'Crítico';
-            else if (humidity < 40) status = 'Atenção';
-            else if (humidity > 70) status = 'Elevado';
-            
-            document.getElementById('humidityStatus').textContent = status;
-            document.getElementById('humidityNote').textContent = `Nível ${status.toLowerCase()} para irrigação. Última medição: ${timeAgo(latest.timestamp)}`;
-        }
+        const humidity = latest.solo?.humidade ?? null;
+
+        const si = interpretSoilHumidity(humidity);
+        const health = calcSoilHealthScore(humidity);
+
+        // Humidity card
+        document.getElementById('currentHumidity').textContent = humidity != null ? humidity.toFixed(0) + '%' : '--%';
+        document.getElementById('humidityStatus').textContent = si.label;
+        document.getElementById('humidityStatus').className = `badge ${si.badgeClass} text-xs`;
+        document.getElementById('humidityNote').textContent = humidity != null
+            ? `Última medição: há ${timeAgo(latest.timestamp)}`
+            : 'Sem leitura disponível';
+
+        // Health card
+        document.getElementById('soilHealthScore').textContent = health.score != null ? `${health.score}/100` : '--/100';
+        document.getElementById('soilHealthLabel').textContent = health.label;
+        document.getElementById('soilHealthLabel').className = `badge ${health.badgeClass} text-xs`;
+        document.getElementById('soilHealthNote').textContent = health.note;
+
+        // Stress risk card
+        document.getElementById('stressRisk').textContent = si.stressLabel;
+        document.getElementById('stressRiskBadge').textContent = si.stressLabel;
+        document.getElementById('stressRiskBadge').className = `badge ${si.stressBadge} text-xs`;
+        document.getElementById('stressRiskNote').textContent = si.stressNote;
+
+        updateSoloBanner(humidity);
     }
 
     function updateChart(data) {
@@ -321,26 +440,24 @@
 
     function updateSoilReadings(data) {
         const tbody = document.getElementById('soilReadingsBody');
-        
+
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
             return;
         }
-        
-        tbody.innerHTML = data.slice(0, 5).map(item => {
-            const humidity = item.solo?.humidade || '--';
+
+        tbody.innerHTML = data.slice(0, 15).map(item => {
+            const humidity = item.solo?.humidade ?? null;
             const timestamp = formatTimestamp(item.timestamp);
-            const status = humidity < 30 ? 'Crítico' : humidity < 40 ? 'Atenção' : 'Normal';
-            const statusClass = humidity < 30 ? 'badge-danger' : humidity < 40 ? 'badge-warning' : 'badge-success';
-            const recommendation = humidity < 40 ? 'Irrigar' : 'Ideal';
-            
+            const si = interpretSoilHumidity(humidity);
+
             return `
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 font-bold text-gray-900">${typeof humidity === 'number' ? humidity.toFixed(1) : humidity}%</td>
-                    <td class="py-3 px-4"><span class="badge ${statusClass}">${status}</span></td>
-                    <td class="py-3 px-4 text-gray-700">${recommendation}</td>
-                    <td class="py-3 px-4 text-gray-700">--</td>
-                    <td class="py-3 px-4 text-gray-500">${timestamp}</td>
+                    <td class="py-3 px-3 font-bold text-gray-900">${humidity != null ? humidity.toFixed(1) + '%' : '--'}</td>
+                    <td class="py-3 px-3"><span class="badge ${si.badgeClass}">${si.label}</span></td>
+                    <td class="py-3 px-3 text-gray-700 text-xs">${si.action}</td>
+                    <td class="py-3 px-3"><span class="badge ${si.pestClass}">${si.pestRisk}</span></td>
+                    <td class="py-3 px-3 text-gray-500 whitespace-nowrap">${timestamp}</td>
                 </tr>
             `;
         }).join('');

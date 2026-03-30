@@ -1,129 +1,13 @@
-<<<<<<< HEAD
-from flask import Blueprint, request, jsonify
-from models import db, User
-from flask_jwt_extended import (
-    create_access_token,
-    jwt_required,
-    get_jwt_identity,
-    get_jwt
-)
 
-auth_bp = Blueprint("auth", __name__)
-
-# Simples blacklist em memória
-blacklist = set()
-
-# ===============================
-# REGISTER
-# ===============================
-@auth_bp.route("/api/register", methods=["POST"])
-def register():
-    data = request.get_json()
-
-    nome = data.get("nome")
-    email = data.get("email")
-    password = data.get("password")
-
-    if not nome or not email or not password:
-        return jsonify({"erro": "Nome, email e senha são obrigatórios"}), 400
-
-    if User.query.filter_by(email=email).first():
-        return jsonify({"erro": "Email já registado"}), 409
-
-    user = User(nome=nome, email=email)
-    user.set_password(password)
-
-    db.session.add(user)
-    db.session.commit()
-
-    return jsonify({"msg": "Conta criada com sucesso"}), 201
-
-
-# ===============================
-# LOGIN
-# ===============================
-@auth_bp.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-
-    email = data.get("email")
-    password = data.get("password")
-
-    if not email or not password:
-        return jsonify({"erro": "Email e senha são obrigatórios"}), 400
-
-    user = User.query.filter_by(email=email).first()
-
-    if not user or not user.check_password(password):
-        return jsonify({"erro": "Credenciais inválidas"}), 401
-
-    # GERAR TOKEN
-    token = create_access_token(identity=str(user.id))
-
-    return jsonify({
-        "token": token,
-        "user": {
-            "id": user.id,
-            "nome": user.nome,
-            "email": user.email
-        }
-    }), 200
-
-
-# ===============================
-# LOGOUT
-# ===============================
-@auth_bp.route("/api/logout", methods=["POST"])
-@jwt_required()
-def logout():
-    jti = get_jwt()["jti"]
-    blacklist.add(jti)
-
-    return jsonify({"msg": "Logout feito com sucesso"}), 200
-
-
-# ===============================
-# GET USER PROFILE
-# ===============================
-@auth_bp.route("/api/profile", methods=["GET"])
-@jwt_required()
-def get_profile():
-    """Get current logged-in user profile"""
-    user_id = int(get_jwt_identity())
-    
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"erro": "Usuário não encontrado"}), 404
-    
-    return jsonify({
-        "id": user.id,
-        "nome": user.nome,
-        "email": user.email,
-        "created_at": user.created_at.isoformat()
-    }), 200
-
-
-# ===============================
-# DELETE ACCOUNT
-# ===============================
-@auth_bp.route("/api/delete-account", methods=["DELETE"])
-@jwt_required()
-def delete_account():
-    user_id = int(get_jwt_identity())
-
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"erro": "Usuário não encontrado"}), 404
-
-    db.session.delete(user)
-    db.session.commit()
-
-    return jsonify({"msg": "Conta deletada com sucesso"}), 200
-    
-=======
 from flask import Blueprint, request, jsonify
 from models import db, User, Log
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+import threading
+try:
+    from email_service import send_welcome_email, send_contact_form_confirmation, send_contact_form_to_admin
+    _email_ok = True
+except Exception:
+    _email_ok = False
 
 auth_bp  = Blueprint("auth", __name__, url_prefix="/api")
 blacklist = set()
@@ -153,6 +37,8 @@ def register():
     db.session.add(u)
     db.session.commit()
     add_log("Nova conta registada", f'"{nome}" registou-se', nome)
+    if _email_ok:
+        threading.Thread(target=send_welcome_email, args=(email, nome), daemon=True).start()
     return jsonify({"msg": "Conta criada com sucesso"}), 201
 
 # POST /api/login
@@ -215,4 +101,46 @@ def delete_account():
     db.session.commit()
     add_log("Conta eliminada", f'"{nome}" eliminou a sua conta', nome)
     return jsonify({"msg": "Conta deletada com sucesso"}), 200
->>>>>>> 955b517415ac3a61e71d7f17f5e1d348940e4c1e
+
+
+# POST /api/contacto  — formulário de contacto da landing page
+@auth_bp.route("/contacto", methods=["POST"])
+def contacto():
+    from models import Mensagem
+    d        = request.get_json(silent=True) or {}
+    nome     = (d.get("nome") or "").strip()
+    email    = (d.get("email") or "").strip().lower()
+    telefone = (d.get("telefone") or "").strip()
+    assunto  = (d.get("assunto") or "").strip()
+    mensagem = (d.get("mensagem") or "").strip()
+
+    if not nome or not email or not assunto or not mensagem:
+        return jsonify({"erro": "Nome, email, assunto e mensagem são obrigatórios"}), 400
+
+    # Guardar na base de dados
+    try:
+        msg = Mensagem(
+            user_id=None,
+            nome_contacto=nome,
+            email_contacto=email,
+            telefone=telefone,
+            origem="contacto",
+            assunto=assunto,
+            conteudo=mensagem,
+            prioridade="normal"
+        )
+        db.session.add(msg)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+    add_log("Contacto recebido", f'"{nome}" enviou formulário de contacto: {assunto}', nome)
+
+    if _email_ok:
+        import os
+        admin_email = os.environ.get("SMTP_USER", "")
+        threading.Thread(target=send_contact_form_confirmation, args=(email, nome, assunto), daemon=True).start()
+        if admin_email:
+            threading.Thread(target=send_contact_form_to_admin, args=(admin_email, nome, email, telefone, assunto, mensagem), daemon=True).start()
+
+    return jsonify({"msg": "Mensagem enviada com sucesso! Entraremos em contacto brevemente."}), 200

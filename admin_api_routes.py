@@ -1,8 +1,16 @@
+import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from functools import wraps
-from models import db, User, Fazenda, Sensor, Log, DadosIoT
+from datetime import datetime, timedelta
+from sqlalchemy import func
+from models import db, User, Fazenda, Sensor, Log, DadosIoT, Mensagem
 from auth_routes import add_log
+from email_service import (
+    send_message_reply, send_critical_alert_to_admin,
+    send_contact_form_confirmation, send_contact_form_to_admin,
+    send_welcome_email
+)
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/admin")
 
@@ -299,3 +307,393 @@ def list_logs():
     offset = int(request.args.get("offset", 0))
     logs   = Log.query.order_by(Log.created_at.desc()).offset(offset).limit(limit).all()
     return jsonify([l.to_dict() for l in logs]), 200
+
+
+# ─────────────────────────────────────────────
+# DETALHES DA FAZENDA — sensores + IoT + culturas
+# GET /api/admin/fazendas/<id>/detalhes
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/fazendas/<int:fid>/detalhes", methods=["GET"])
+@admin_required
+def get_fazenda_detalhes(fid):
+    f = Fazenda.query.get(fid)
+    if not f:
+        return jsonify({"erro": "Fazenda não encontrada"}), 404
+
+    sensores = Sensor.query.filter_by(fazenda_id=fid).all()
+
+    # Últimos dados IoT
+    latest = DadosIoT.query.order_by(DadosIoT.timestamp.desc()).first()
+    iot = None
+    if latest:
+        iot = {
+            "temperatura_ar": latest.temperatura_ar,
+            "humidade_ar": latest.humidade_ar,
+            "pressao_ar": latest.pressao_ar,
+            "humidade_solo": latest.humidade_solo,
+            "detecao_praga": latest.detecao_praga,
+            "tipo_praga": latest.tipo_praga,
+            "confianca": latest.confianca,
+            "timestamp": latest.timestamp.isoformat() if latest.timestamp else None,
+        }
+
+    # Calcular saúde do solo com base nos dados IoT
+    soil_health = "sem_dados"
+    if iot and iot.get("humidade_solo") is not None:
+        h = iot["humidade_solo"]
+        if h >= 60:
+            soil_health = "bom"
+        elif h >= 30:
+            soil_health = "atencao"
+        else:
+            soil_health = "critico"
+
+    return jsonify({
+        "fazenda": f.to_dict(),
+        "sensores": [s.to_dict() for s in sensores],
+        "iot_ultimo": iot,
+        "saude_solo": soil_health,
+        "cultura_info": {
+            "nome": f.cultura or "—",
+            "ph_ideal": 6.5,
+            "humidade_ideal": 65,
+            "temp_ideal": 22
+        }
+    }), 200
+
+
+# ─────────────────────────────────────────────
+# MENSAGENS — Agricultor envia
+# POST /api/mensagens  (agricultor autenticado)
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/mensagens", methods=["POST"])
+@jwt_required()
+def criar_mensagem():
+    user_id = int(get_jwt_identity())
+    d = request.get_json(silent=True) or {}
+    assunto   = (d.get("assunto") or "").strip()
+    conteudo  = (d.get("conteudo") or "").strip()
+    prioridade = d.get("prioridade", "normal")
+
+    if not assunto or not conteudo:
+        return jsonify({"erro": "Assunto e conteúdo são obrigatórios"}), 400
+    if prioridade not in ("critico", "alto", "normal", "baixo"):
+        prioridade = "normal"
+
+    msg = Mensagem(user_id=user_id, assunto=assunto, conteudo=conteudo, prioridade=prioridade)
+    db.session.add(msg)
+    db.session.commit()
+
+    # Email: se crítico, notificar admin
+    if prioridade == "critico":
+        sender = User.query.get(user_id)
+        admin = User.query.filter_by(role="superadmin").first()
+        if admin and sender:
+            import threading
+            threading.Thread(
+                target=send_critical_alert_to_admin,
+                args=(admin.email, sender.nome, sender.email, assunto, conteudo),
+                daemon=True
+            ).start()
+
+    return jsonify(msg.to_dict()), 201
+
+
+# ─────────────────────────────────────────────
+# MENSAGENS — Agricultor vê as suas mensagens
+# GET /api/mensagens/minhas
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/mensagens/minhas", methods=["GET"])
+@jwt_required()
+def minhas_mensagens():
+    user_id = int(get_jwt_identity())
+    msgs = Mensagem.query.filter_by(user_id=user_id).order_by(Mensagem.created_at.desc()).all()
+    return jsonify([m.to_dict() for m in msgs]), 200
+
+
+# ─────────────────────────────────────────────
+# MENSAGENS — Admin vê TODAS (dashboard + contacto), com filtros
+# GET /api/admin/mensagens?origem=&status=&prioridade=
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/mensagens", methods=["GET"])
+@admin_required
+def admin_list_mensagens():
+    origem    = request.args.get("origem", "")      # 'dashboard' | 'contacto' | ''
+    status    = request.args.get("status", "")      # 'aberto' | 'respondido' | ''
+    prioridade = request.args.get("prioridade", "") # 'critico' | 'alto' | 'normal' | 'baixo' | ''
+
+    q = Mensagem.query
+    if origem:
+        q = q.filter(Mensagem.origem == origem)
+    if status:
+        q = q.filter(Mensagem.status == status)
+    if prioridade:
+        q = q.filter(Mensagem.prioridade == prioridade)
+
+    msgs = q.order_by(Mensagem.created_at.desc()).all()
+
+    total       = len(msgs)
+    respondidas = sum(1 for m in msgs if m.status == "respondido")
+    pendentes   = sum(1 for m in msgs if m.status == "aberto")
+    contacto_n  = sum(1 for m in msgs if (m.origem or "dashboard") == "contacto")
+
+    return jsonify({
+        "mensagens": [m.to_dict() for m in msgs],
+        "stats": {
+            "total": total,
+            "respondidas": respondidas,
+            "pendentes": pendentes,
+            "contacto": contacto_n,
+            "dashboard": total - contacto_n
+        }
+    }), 200
+
+
+# ─────────────────────────────────────────────
+# ALERTAS DE AGRICULTORES — mensagens críticas
+# GET /api/admin/alertas/agricultores
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/alertas/agricultores", methods=["GET"])
+@admin_required
+def alertas_agricultores():
+    msgs = Mensagem.query.filter_by(prioridade="critico").order_by(Mensagem.created_at.desc()).all()
+    return jsonify([m.to_dict() for m in msgs]), 200
+
+
+# ─────────────────────────────────────────────
+# RESPONDER MENSAGEM — Admin responde
+# PUT /api/admin/mensagens/<id>/responder
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/mensagens/<int:mid>/responder", methods=["PUT"])
+@admin_required
+def responder_mensagem(mid):
+    m = Mensagem.query.get(mid)
+    if not m:
+        return jsonify({"erro": "Mensagem não encontrada"}), 404
+    d = request.get_json(silent=True) or {}
+    resposta = (d.get("resposta") or "").strip()
+    if not resposta:
+        return jsonify({"erro": "Resposta é obrigatória"}), 400
+    actor = get_current_user()
+    m.resposta = resposta
+    m.respondido_por = actor.nome
+    m.respondido_em = datetime.utcnow()
+    m.status = "respondido"
+    m.lida_admin = True
+    db.session.commit()
+    add_log("Mensagem respondida", f'Admin respondeu mensagem #{mid}', actor.nome)
+
+    # Email: notificar agricultor da resposta
+    if m.user:
+        import threading
+        threading.Thread(
+            target=send_message_reply,
+            args=(m.user.email, m.user.nome, m.assunto, resposta, actor.nome),
+            daemon=True
+        ).start()
+
+    return jsonify(m.to_dict()), 200
+
+
+# ─────────────────────────────────────────────
+# MARCAR MENSAGEM COMO LIDA
+# PUT /api/admin/mensagens/<id>/ler
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/mensagens/<int:mid>/ler", methods=["PUT"])
+@admin_required
+def marcar_mensagem_lida(mid):
+    m = Mensagem.query.get(mid)
+    if not m:
+        return jsonify({"erro": "Mensagem não encontrada"}), 404
+    m.lida_admin = True
+    db.session.commit()
+    return jsonify(m.to_dict()), 200
+
+
+# ─────────────────────────────────────────────
+# RELATÓRIOS BI — dados agregados
+# GET /api/admin/relatorios/dados
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/relatorios/dados", methods=["GET"])
+@admin_required
+def relatorios_dados():
+    periodo    = int(request.args.get("periodo", 30))
+    fazenda_id = request.args.get("fazenda_id")
+    cutoff     = datetime.utcnow() - timedelta(days=periodo)
+
+    # Build base queryset, optionally filtered by farm via sensor device_ids
+    device_ids = None
+    fazenda_nome = None
+    if fazenda_id:
+        faz = Fazenda.query.get(int(fazenda_id))
+        if faz:
+            fazenda_nome = faz.nome
+            sensors = Sensor.query.filter_by(fazenda_id=int(fazenda_id)).all()
+            device_ids = [s.nome for s in sensors]
+
+    def iot_q():
+        q = DadosIoT.query.filter(DadosIoT.timestamp >= cutoff)
+        if device_ids is not None:
+            if device_ids:
+                q = q.filter(DadosIoT.device_id.in_(device_ids))
+            else:
+                q = q.filter(False)
+        return q
+
+    total_leituras    = iot_q().count()
+    avg_temp          = db.session.query(func.avg(DadosIoT.temperatura_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.temperatura_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
+    avg_hum_ar        = db.session.query(func.avg(DadosIoT.humidade_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.humidade_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
+    avg_hum_solo      = db.session.query(func.avg(DadosIoT.humidade_solo)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.humidade_solo)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
+    avg_pressao       = db.session.query(func.avg(DadosIoT.pressao_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.pressao_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
+    pragas_detectadas = iot_q().filter(DadosIoT.detecao_praga == True).count()
+
+    # Dados diários para gráficos
+    rows = iot_q().order_by(DadosIoT.timestamp.asc()).all()
+    daily = {}
+    for row in rows:
+        day = row.timestamp.strftime("%Y-%m-%d")
+        if day not in daily:
+            daily[day] = {"temp": [], "hum_solo": [], "hum_ar": [], "pressao": []}
+        if row.temperatura_ar is not None: daily[day]["temp"].append(row.temperatura_ar)
+        if row.humidade_solo  is not None: daily[day]["hum_solo"].append(row.humidade_solo)
+        if row.humidade_ar    is not None: daily[day]["hum_ar"].append(row.humidade_ar)
+        if row.pressao_ar     is not None: daily[day]["pressao"].append(row.pressao_ar)
+
+    def avg(lst): return round(sum(lst)/len(lst), 1) if lst else None
+
+    chart_diario = [
+        {"data": day,
+         "temp": avg(v["temp"]),
+         "hum_solo": avg(v["hum_solo"]),
+         "hum_ar": avg(v["hum_ar"]),
+         "pressao": avg(v["pressao"])}
+        for day, v in sorted(daily.items())
+    ]
+
+    msgs_criticas = Mensagem.query.filter_by(prioridade="critico", lida_admin=False).count()
+    msgs_nao_lidas = Mensagem.query.filter_by(lida_admin=False).count()
+
+    return jsonify({
+        "periodo_dias": periodo,
+        "fazenda_filtro": fazenda_nome,
+        "resumo": {
+            "total_leituras": total_leituras,
+            "temp_media": round(avg_temp, 1) if avg_temp else None,
+            "hum_ar_media": round(avg_hum_ar, 1) if avg_hum_ar else None,
+            "hum_solo_media": round(avg_hum_solo, 1) if avg_hum_solo else None,
+            "pressao_media": round(avg_pressao, 1) if avg_pressao else None,
+            "pragas_detectadas": pragas_detectadas,
+            "total_fazendas": Fazenda.query.count(),
+            "total_sensores": Sensor.query.count(),
+            "sensores_online": Sensor.query.filter_by(status="online").count(),
+            "total_usuarios": User.query.count(),
+            "mensagens_criticas": msgs_criticas,
+            "mensagens_nao_lidas": msgs_nao_lidas,
+        },
+        "grafico_diario": chart_diario,
+        "sensores_por_tipo": {
+            tipo: Sensor.query.filter_by(tipo=tipo).count()
+            for tipo in ["Clima", "Solo", "GPS", "Câmara"]
+        },
+        "fazendas_status": {
+            "active": Fazenda.query.filter_by(status="active").count(),
+            "inactive": Fazenda.query.filter_by(status="inactive").count(),
+        }
+    }), 200
+
+
+# ─────────────────────────────────────────────
+# RELATÓRIOS DO AGRICULTOR
+# GET /api/relatorios/agricultor
+# ─────────────────────────────────────────────
+@admin_api_bp.route("/relatorios/agricultor", methods=["GET"])
+@jwt_required()
+def relatorios_agricultor():
+    periodo = request.args.get("periodo", "mensal")
+    # Map period to days
+    dias_map = {"semanal": 7, "mensal": 30, "anual": 365}
+    dias = dias_map.get(periodo, 30)
+    cutoff = datetime.utcnow() - timedelta(days=dias)
+
+    rows = DadosIoT.query.filter(DadosIoT.timestamp >= cutoff).order_by(DadosIoT.timestamp.asc()).all()
+
+    daily = {}
+    for row in rows:
+        day = row.timestamp.strftime("%Y-%m-%d")
+        if day not in daily:
+            daily[day] = {"temp": [], "hum_solo": [], "hum_ar": [], "pressao": [], "pragas": 0}
+        if row.temperatura_ar is not None: daily[day]["temp"].append(row.temperatura_ar)
+        if row.humidade_solo  is not None: daily[day]["hum_solo"].append(row.humidade_solo)
+        if row.humidade_ar    is not None: daily[day]["hum_ar"].append(row.humidade_ar)
+        if row.pressao_ar     is not None: daily[day]["pressao"].append(row.pressao_ar)
+        if row.detecao_praga: daily[day]["pragas"] += 1
+
+    def avg(lst): return round(sum(lst)/len(lst), 1) if lst else None
+
+    chart_diario = [
+        {"data": day,
+         "temp": avg(v["temp"]),
+         "hum_solo": avg(v["hum_solo"]),
+         "hum_ar": avg(v["hum_ar"]),
+         "pressao": avg(v["pressao"]),
+         "pragas": v["pragas"]}
+        for day, v in sorted(daily.items())
+    ]
+
+    all_temps  = [r.temperatura_ar for r in rows if r.temperatura_ar is not None]
+    all_humid  = [r.humidade_solo  for r in rows if r.humidade_solo  is not None]
+    all_hum_ar = [r.humidade_ar    for r in rows if r.humidade_ar    is not None]
+
+    return jsonify({
+        "periodo": periodo,
+        "dias": dias,
+        "resumo": {
+            "total_leituras": len(rows),
+            "temp_media": avg(all_temps),
+            "hum_solo_media": avg(all_humid),
+            "hum_ar_media": avg(all_hum_ar),
+            "pragas_detectadas": sum(1 for r in rows if r.detecao_praga),
+            "temp_max": round(max(all_temps), 1) if all_temps else None,
+            "temp_min": round(min(all_temps), 1) if all_temps else None,
+            "hum_solo_max": round(max(all_humid), 1) if all_humid else None,
+            "hum_solo_min": round(min(all_humid), 1) if all_humid else None,
+        },
+        "grafico_diario": chart_diario,
+    }), 200
+
+
+# ─────────────────────────────────────────────
+# CONFIGURAÇÕES DA PLATAFORMA
+# GET/POST /api/admin/configuracoes
+# ─────────────────────────────────────────────
+import json as _json
+
+_SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'instance', 'settings.json')
+
+def _load_settings():
+    try:
+        with open(_SETTINGS_FILE, 'r', encoding='utf-8') as f:
+            return _json.load(f)
+    except Exception:
+        return {}
+
+def _save_settings(data):
+    os.makedirs(os.path.dirname(_SETTINGS_FILE), exist_ok=True)
+    with open(_SETTINGS_FILE, 'w', encoding='utf-8') as f:
+        _json.dump(data, f, ensure_ascii=False, indent=2)
+
+@admin_api_bp.route("/configuracoes", methods=["GET"])
+@admin_required
+def get_configuracoes():
+    return jsonify(_load_settings()), 200
+
+@admin_api_bp.route("/configuracoes", methods=["POST"])
+@admin_required
+def save_configuracoes():
+    data = request.get_json(silent=True) or {}
+    existing = _load_settings()
+    existing.update(data)
+    _save_settings(existing)
+    actor = get_current_user()
+    add_log("Configurações actualizadas", "Admin guardou configurações da plataforma", actor.nome)
+    return jsonify({"msg": "Configurações guardadas", "settings": existing}), 200

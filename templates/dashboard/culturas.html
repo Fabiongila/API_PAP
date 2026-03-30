@@ -4,179 +4,537 @@
 
 {% block page_title %}Gestão de Culturas{% endblock %}
 {% block page_icon %}<i class="icon-leaf text-green-600"></i>{% endblock %}
-{% block page_subtitle %}Visão geral do desempenho e saúde das suas plantações{% endblock %}
+{% block page_subtitle %}Monitoramento completo da saúde e desempenho das suas plantações{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── Tab System ─────────────────────────────────── */
+    .tab-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+    .tab-btn:hover { color: #111827; }
+    .tab-btn.active {
+        color: #2e8b57;
+        border-bottom-color: #2e8b57;
+        font-weight: 600;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Alert Cards ─────────────────────────────────── */
+    .alert-card {
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .alert-card-critical { background: #fef2f2; border: 1px solid #fca5a5; }
+    .alert-card-warning  { background: #fffbeb; border: 1px solid #fcd34d; }
+    .alert-card-info     { background: #eff6ff; border: 1px solid #93c5fd; }
+
+    /* ── Operation Form Cards ──────────────────────── */
+    .op-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; }
+    .op-card h4 { font-size: 0.875rem; font-weight: 600; color: #111827; margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.375rem; }
+
+    /* ── Recomendações ───────────────────────────────── */
+    .rec-card {
+        border-radius: 0.75rem;
+        padding: 1rem;
+        border-left: 4px solid #2e8b57;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-left: 4px solid #22c55e;
+    }
+    .rec-card.rec-warn { background: #fffbeb; border-color: #fde68a; border-left-color: #f59e0b; }
+    .rec-card.rec-danger { background: #fef2f2; border-color: #fca5a5; border-left-color: #ef4444; }
+</style>
+{% endblock %}
 
 {% block content %}
 
-<!-- KPI Cards Row 1 - Main Metrics -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-    <!-- Health Index Card -->
+<!-- ══ KPI Row ══════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+
+    <!-- Índice de Saúde -->
     <div class="kpi-card group cursor-pointer hover:border-green-300">
         <div class="flex-1">
             <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Índice de Saúde</p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900" id="healthIndex">--</p>
-                <p class="text-sm font-600 text-green-600">Bom estado</p>
+                <p class="text-2xl font-bold text-gray-900" id="kpiSaude">--</p>
+                <span class="badge badge-success" id="kpiSaudeBadge" style="display:none;">Bom</span>
             </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
             <i class="icon-heart text-green-600 text-2xl"></i>
         </div>
     </div>
 
-    <!-- Cultivated Area Card -->
+    <!-- Temp Atual -->
+    <div class="kpi-card group cursor-pointer hover:border-orange-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Temp Atual</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTemp">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-orange-100 to-orange-50 group-hover:scale-110 transition-transform">
+            <i class="icon-thermometer text-orange-500 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Humidade Solo -->
     <div class="kpi-card group cursor-pointer hover:border-blue-300">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Área Cultivada</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Humidade Solo</p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900" id="cultivatedArea">--</p>
-                <p class="text-sm font-600 text-blue-600">3 zonas ativas</p>
+                <p class="text-2xl font-bold text-gray-900" id="kpiHumSolo">--</p>
+                <span class="badge" id="kpiHumSoloBadge" style="display:none;"></span>
             </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-layers text-blue-600 text-2xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform">
+            <i class="icon-droplets text-blue-600 text-2xl"></i>
         </div>
     </div>
 
-    <!-- Harvest Days Card -->
-    <div class="kpi-card group cursor-pointer hover:border-amber-300">
+    <!-- Estado Pragas -->
+    <div class="kpi-card group cursor-pointer hover:border-red-300">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Dias até Colheita</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Estado Pragas</p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900" id="harvestDays">--</p>
-                <p class="text-sm font-600 text-amber-600">Estimativa média</p>
+                <span class="badge badge-success" id="kpiPragasBadge">Normal</span>
             </div>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-calendar text-amber-600 text-2xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-red-100 to-red-50 group-hover:scale-110 transition-transform">
+            <i class="icon-shield text-red-500 text-2xl"></i>
         </div>
     </div>
 
-    <!-- Estimated Production Card -->
-    <div class="kpi-card group cursor-pointer hover:border-green-300">
-        <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Produção Estimada</p>
-            <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900" id="estimatedProduction">--</p>
-                <p class="text-sm font-600 text-green-600">Por hectare</p>
-            </div>
-        </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-trending-up text-green-600 text-2xl"></i>
-        </div>
-    </div>
-
-    <!-- Active Zones Card -->
+    <!-- Pressão Ar -->
     <div class="kpi-card group cursor-pointer hover:border-purple-300">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Zonas Ativas</p>
-            <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">5</p>
-                <p class="text-sm font-600 text-purple-600">Monitoradas</p>
-            </div>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Pressão Ar</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiPressao">--</p>
         </div>
-        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform duration-300">
-            <i class="icon-map text-purple-600 text-2xl"></i>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform">
+            <i class="icon-gauge text-purple-600 text-2xl"></i>
         </div>
     </div>
 </div>
 
-<!-- Charts Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Growth Stage Donut Chart -->
-    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <i class="icon-pie-chart text-green-600 text-xl"></i>
-                Estágio de Crescimento
-            </h3>
-            <span class="text-xs font-500 text-gray-500">Distribuição atual</span>
-        </div>
-        <div class="chart-wrapper">
-            <canvas id="growthStageChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Environmental Conditions Bar Chart -->
-    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 lg:col-span-2 slide-in-up" style="animation-delay: 0.2s">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
-                Condições Ambientais
-            </h3>
-            <span class="text-xs font-500 text-gray-500">Média capturada pelos sensores</span>
-        </div>
-        <div class="chart-wrapper">
-            <canvas id="environmentalConditionsChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Soil Quality Trend Line Chart -->
-<div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 mb-8 slide-in-up" style="animation-delay: 0.3s">
-    <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <i class="icon-trending-up text-green-600 text-xl"></i>
-            Tendência de Qualidade do Solo
-        </h3>
-        <div class="flex items-center gap-2">
-            <span class="text-xs font-500 text-gray-500">Acompanhamento nutricional e hídrico</span>
-            <select class="form-input text-xs w-24" id="soilTrendFilter" onchange="updateSoilTrendChart()">
-                <option value="semanas">Semanas</option>
-                <option value="meses">Meses</option>
-            </select>
-        </div>
-    </div>
-    <div class="chart-wrapper">
-        <canvas id="soilTrendChart"></canvas>
-    </div>
-</div>
-
-<!-- Cultivation Zones Table -->
-<div class="card group hover:shadow-lg transition-all duration-300">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <i class="icon-grid text-green-600 text-xl"></i>
-                Zonas de Cultivo
-            </h3>
-            <p class="text-sm text-gray-500 mt-1">Detalhamento por talhão e acompanhamento de saúde</p>
-        </div>
-        <button onclick="openNewZoneModal()" class="btn btn-primary">
-            <i class="icon-plus text-lg"></i>
-            <span>Nova Zona</span>
+<!-- ══ Tabs ═════════════════════════════════════════════════════════════════ -->
+<div class="card mb-6" style="padding:0; overflow:hidden;">
+    <!-- Tab Nav -->
+    <div style="border-bottom:1px solid #e5e7eb; padding: 0 1.25rem; display:flex; overflow-x:auto; gap:0.25rem;">
+        <button class="tab-btn active" onclick="switchTab('visao')" id="tab-visao">
+            <i class="icon-layout-dashboard" style="margin-right:4px;"></i>Visão Geral
+        </button>
+        <button class="tab-btn" onclick="switchTab('monitoramento')" id="tab-monitoramento">
+            <i class="icon-activity" style="margin-right:4px;"></i>Monitoramento
+        </button>
+        <button class="tab-btn" onclick="switchTab('alertas')" id="tab-alertas">
+            <i class="icon-bell" style="margin-right:4px;"></i>Alertas
+            <span class="badge badge-danger ml-1" id="alertaCount" style="display:none;font-size:10px;padding:1px 6px;"></span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('operacoes')" id="tab-operacoes">
+            <i class="icon-clipboard-list" style="margin-right:4px;"></i>Operações
+        </button>
+        <button class="tab-btn" onclick="switchTab('zonas')" id="tab-zonas">
+            <i class="icon-map" style="margin-right:4px;"></i>Zonas / Talhões
         </button>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b border-gray-200 bg-gray-50">
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Zona</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Cultura</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Área Total</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estágio Atual</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status de Saúde</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="zonesTableBody">
-                <tr>
-                    <td colspan="6" class="text-center py-8 text-gray-500">
-                        <div class="spinner mx-auto"></div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- ── Tab: Visão Geral ─────────────────────────────────────────────── -->
+    <div class="tab-panel active" id="panel-visao" style="padding:1.25rem;">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <!-- Identificação -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-tag text-green-600"></i> Identificação
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Nome da Cultura</span><span class="font-600 text-gray-900" id="infoNomeCultura">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Variedade</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Talhão</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Estágio</span><span class="badge badge-info">Em crescimento</span></div>
+                </div>
+            </div>
+
+            <!-- Dados de Plantio -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-calendar text-green-600"></i> Dados de Plantio
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Data Plantio</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Prev. Colheita</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Ciclo</span><span class="font-600 text-gray-900">—</span></div>
+                </div>
+            </div>
+
+            <!-- Localização -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-map-pin text-green-600"></i> Localização
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Latitude</span><span class="font-600 text-gray-900" id="infoLat">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Longitude</span><span class="font-600 text-gray-900" id="infoLon">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Área</span><span class="font-600 text-gray-900">—</span></div>
+                </div>
+            </div>
+
+            <!-- Dados Ambientais -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-wind text-blue-600"></i> Dados Ambientais
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Temperatura</span><span class="font-600 text-gray-900" id="infoTemp">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Humidade Ar</span><span class="font-600 text-gray-900" id="infoHumAr">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Pressão</span><span class="font-600 text-gray-900" id="infoPressao">—</span></div>
+                </div>
+            </div>
+
+            <!-- Dados do Solo -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-layers text-amber-600"></i> Dados do Solo
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Humidade</span><span class="font-600 text-gray-900" id="infoHumSolo">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">pH</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Nutrientes</span><span class="font-600 text-gray-900">—</span></div>
+                </div>
+            </div>
+
+            <!-- Produtividade -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;">
+                <h4 style="font-size:0.8125rem;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.375rem;">
+                    <i class="icon-trending-up text-green-600"></i> Produtividade
+                </h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Estimativa</span><span class="font-600 text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Real</span><span class="font-600 text-gray-900">—</span></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-        <p class="text-sm text-gray-500">Mostrando 1-5 de 12 zonas ativas</p>
-        <div class="flex gap-2">
-            <button class="btn btn-sm btn-secondary">Anterior</button>
-            <button class="btn btn-sm btn-secondary">Próximo</button>
+    <!-- ── Tab: Monitoramento ────────────────────────────────────────────── -->
+    <div class="tab-panel" id="panel-monitoramento" style="padding:1.25rem;">
+
+        <!-- Chart 1: Temp + Hum Solo -->
+        <div class="card mb-4" style="padding:1rem;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <i class="icon-trending-up text-green-600"></i>
+                    Temperatura &amp; Humidade do Solo
+                </h3>
+                <span class="text-xs text-gray-500">Últimas 20 leituras</span>
+            </div>
+            <div style="position:relative;height:260px;">
+                <canvas id="chartMonTemp"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Hum Ar + Pressão -->
+        <div class="card mb-4" style="padding:1rem;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <i class="icon-bar-chart-2 text-blue-600"></i>
+                    Humidade do Ar &amp; Pressão Atmosférica
+                </h3>
+                <span class="text-xs text-gray-500">Últimas 20 leituras</span>
+            </div>
+            <div style="position:relative;height:220px;">
+                <canvas id="chartMonAtm"></canvas>
+            </div>
+        </div>
+
+        <!-- Pest Detection Table -->
+        <div class="card" style="padding:1rem;">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                <i class="icon-bug text-red-500"></i>
+                Histórico de Deteções de Pragas
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <th class="text-left py-2 px-3 font-600 text-gray-700">Data/Hora</th>
+                            <th class="text-left py-2 px-3 font-600 text-gray-700">Tipo de Praga</th>
+                            <th class="text-left py-2 px-3 font-600 text-gray-700">Confiança</th>
+                            <th class="text-left py-2 px-3 font-600 text-gray-700">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pestHistoryBody">
+                        <tr>
+                            <td colspan="4" class="text-center py-6 text-gray-400">
+                                <div class="spinner mx-auto"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Alertas ──────────────────────────────────────────────────── -->
+    <div class="tab-panel" id="panel-alertas" style="padding:1.25rem;">
+        <div id="alertasContainer">
+            <div class="text-center py-8 text-gray-400">
+                <div class="spinner mx-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Operações ────────────────────────────────────────────────── -->
+    <div class="tab-panel" id="panel-operacoes" style="padding:1.25rem;">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+            <!-- Irrigação -->
+            <div class="op-card">
+                <h4><i class="icon-droplets text-blue-500"></i> Irrigação</h4>
+                <form onsubmit="saveOperation(event, 'irrigacao')" class="space-y-2">
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Data</label>
+                        <input type="date" name="data" required
+                               class="form-input text-sm w-full mt-1"
+                               value="{{ '' }}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Duração (min)</label>
+                        <input type="number" name="duracao" min="0" placeholder="Ex: 30"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Volume (L)</label>
+                        <input type="number" name="volume" min="0" placeholder="Ex: 500"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Notas</label>
+                        <textarea name="notas" rows="2" placeholder="Observações..."
+                                  class="form-input text-sm w-full mt-1" style="resize:vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-full">
+                        <i class="icon-save text-sm"></i> Guardar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Fertilização -->
+            <div class="op-card">
+                <h4><i class="icon-flask-conical text-green-600"></i> Fertilização</h4>
+                <form onsubmit="saveOperation(event, 'fertilizacao')" class="space-y-2">
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Data</label>
+                        <input type="date" name="data" required
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Produto</label>
+                        <input type="text" name="produto" placeholder="Nome do fertilizante"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Dose (kg/ha)</label>
+                        <input type="number" name="dose" min="0" step="0.1" placeholder="Ex: 50"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Notas</label>
+                        <textarea name="notas" rows="2" placeholder="Observações..."
+                                  class="form-input text-sm w-full mt-1" style="resize:vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-full">
+                        <i class="icon-save text-sm"></i> Guardar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Pulverização -->
+            <div class="op-card">
+                <h4><i class="icon-spray-can text-purple-600"></i> Pulverização</h4>
+                <form onsubmit="saveOperation(event, 'pulverizacao')" class="space-y-2">
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Data</label>
+                        <input type="date" name="data" required
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Produto</label>
+                        <input type="text" name="produto" placeholder="Nome do produto"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Área (ha)</label>
+                        <input type="number" name="area" min="0" step="0.01" placeholder="Ex: 2.5"
+                               class="form-input text-sm w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 font-500">Notas</label>
+                        <textarea name="notas" rows="2" placeholder="Observações..."
+                                  class="form-input text-sm w-full mt-1" style="resize:vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-full">
+                        <i class="icon-save text-sm"></i> Guardar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Operations History -->
+        <div class="card" style="padding:1rem;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <i class="icon-history text-green-600"></i>
+                    Histórico de Operações
+                </h3>
+                <button onclick="clearOperations()" class="btn btn-sm btn-secondary text-xs">
+                    <i class="icon-trash-2 text-xs"></i> Limpar
+                </button>
+            </div>
+            <div id="operacoesHistorico">
+                <p class="text-sm text-gray-400 text-center py-4">Sem operações registadas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- ── Tab: Zonas / Talhões ─────────────────────────────────────────── -->
+    <div class="tab-panel" id="panel-zonas" style="padding:1.25rem;">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-base font-semibold text-gray-900">Zonas e Talhões da Fazenda</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Gerencie as áreas de cultivo da sua propriedade</p>
+            </div>
+            <button onclick="abrirModalZona()"
+                style="display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#2E8B57,#1a6b3c);color:white;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.825rem;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(46,139,87,.3);">
+                <i class="icon-plus"></i> Adicionar Zona
+            </button>
+        </div>
+
+        <!-- Resumo KPIs -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0.75rem;padding:0.875rem;text-align:center;">
+                <p class="text-2xl font-bold text-green-700" id="zonaTotal">0</p>
+                <p class="text-xs text-gray-500 uppercase font-600 mt-0.5">Total de Zonas</p>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.75rem;padding:0.875rem;text-align:center;">
+                <p class="text-2xl font-bold text-blue-700" id="zonaAtivas">0</p>
+                <p class="text-xs text-gray-500 uppercase font-600 mt-0.5">Ativas</p>
+            </div>
+            <div style="background:#fefce8;border:1px solid #fde68a;border-radius:0.75rem;padding:0.875rem;text-align:center;">
+                <p class="text-2xl font-bold text-yellow-700" id="zonaHa">0</p>
+                <p class="text-xs text-gray-500 uppercase font-600 mt-0.5">Hectares Total</p>
+            </div>
+            <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:0.75rem;padding:0.875rem;text-align:center;">
+                <p class="text-2xl font-bold text-purple-700" id="zonaCulturas">0</p>
+                <p class="text-xs text-gray-500 uppercase font-600 mt-0.5">Culturas</p>
+            </div>
+        </div>
+
+        <!-- Grid de Zonas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="zonaGrid">
+            <div style="border:2px dashed #d1fae5;border-radius:0.75rem;padding:2rem;text-align:center;color:#9ca3af;cursor:pointer;" onclick="abrirModalZona()">
+                <i class="icon-plus-circle text-3xl text-green-300 block mb-2"></i>
+                <p class="text-sm font-500">Adicionar primeira zona</p>
+                <p class="text-xs mt-1">Clique para criar uma nova zona ou talhão</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adicionar/Editar Zona -->
+<div id="modalZona" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:1rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #f3f4f6;">
+            <h4 style="font-weight:700;font-size:1rem;color:#111827;display:flex;align-items:center;gap:0.5rem;">
+                <i class="icon-map-pin text-green-600"></i>
+                <span id="modalZonaTitulo">Nova Zona / Talhão</span>
+            </h4>
+            <button onclick="fecharModalZona()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.25rem;">
+                <i class="icon-x"></i>
+            </button>
+        </div>
+        <div style="padding:1.25rem;">
+            <input type="hidden" id="zonaEditId" value="">
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm font-500 text-gray-700 block mb-1">Nome da Zona / Talhão <span style="color:#ef4444">*</span></label>
+                    <input type="text" id="zonaNome" placeholder="Ex: Talhão A, Zona Norte, Parcela 1..."
+                        class="form-input w-full">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-500 text-gray-700 block mb-1">Cultura Principal</label>
+                        <input type="text" id="zonaCultura" placeholder="Ex: Milho, Soja..."
+                            class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="text-sm font-500 text-gray-700 block mb-1">Área (hectares)</label>
+                        <input type="number" id="zonaArea" min="0" step="0.01" placeholder="Ex: 2.5"
+                            class="form-input w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-500 text-gray-700 block mb-1">Estado</label>
+                        <select id="zonaStatus" class="form-input w-full">
+                            <option value="ativa">Ativa — Em cultivo</option>
+                            <option value="pousio">Pousio — Em descanso</option>
+                            <option value="preparacao">Em preparação</option>
+                            <option value="colheita">Em colheita</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm font-500 text-gray-700 block mb-1">Data de Plantio</label>
+                        <input type="date" id="zonaDataPlantio" class="form-input w-full">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm font-500 text-gray-700 block mb-1">Localização / Coordenadas</label>
+                    <input type="text" id="zonaLocalizacao" placeholder="Ex: Setor Norte, GPS: -15.7, -47.9"
+                        class="form-input w-full">
+                </div>
+                <div>
+                    <label class="text-sm font-500 text-gray-700 block mb-1">Notas</label>
+                    <textarea id="zonaNotas" rows="2" placeholder="Observações sobre esta zona..."
+                        class="form-input w-full" style="resize:vertical;"></textarea>
+                </div>
+            </div>
+        </div>
+        <div style="padding:1rem 1.25rem;border-top:1px solid #f3f4f6;display:flex;gap:0.625rem;justify-content:flex-end;">
+            <button onclick="fecharModalZona()" class="btn btn-secondary btn-sm">Cancelar</button>
+            <button onclick="salvarZona()"
+                style="display:inline-flex;align-items:center;gap:0.375rem;background:linear-gradient(135deg,#2E8B57,#1a6b3c);color:white;border:none;padding:0.5rem 1.25rem;border-radius:0.5rem;font-size:0.825rem;font-weight:600;cursor:pointer;">
+                <i class="icon-save text-sm"></i> Guardar Zona
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Recomendações Inteligentes ════════════════════════════════════════════ -->
+<div class="card mt-6">
+    <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2 mb-4">
+        <i class="icon-lightbulb text-amber-500"></i>
+        Recomendações Inteligentes
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="recomendacoesContainer">
+        <div class="rec-card">
+            <p class="text-xs text-gray-400">A carregar recomendações...</p>
         </div>
     </div>
 </div>
@@ -184,159 +542,258 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    const culturaState = {
-        charts: {},
-        refreshInterval: null
+    /* ═══════════════════════════════════════════════════════════════════════
+       State
+    ══════════════════════════════════════════════════════════════════════════ */
+    const cultState = {
+        dados: [],
+        refreshInterval: null,
+        charts: { monTemp: null, monAtm: null }
     };
 
-    // Configure Chart.js
     Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = '#6B7280';
 
-    function initCharts() {
-        console.log('[Culturas] Initializing charts...');
+    /* ═══════════════════════════════════════════════════════════════════════
+       Tab System
+    ══════════════════════════════════════════════════════════════════════════ */
+    function switchTab(name) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
 
-        // Growth Stage Donut Chart - Empty data initially
-        culturaState.charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Germinação', 'Floração', 'Maturação', 'Repouso'],
-                datasets: [{
-                    data: [0, 0, 0, 0],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.85)',
-                        'rgba(34, 197, 94, 0.85)',
-                        'rgba(245, 158, 11, 0.85)',
-                        'rgba(107, 114, 128, 0.85)'
-                    ],
-                    borderColor: [
-                        'rgb(59, 130, 246)',
-                        'rgb(34, 197, 94)',
-                        'rgb(245, 158, 11)',
-                        'rgb(107, 114, 128)'
-                    ],
-                    borderWidth: 2,
-                    spacing: 3,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 20, font: { size: 12, weight: '500' } }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: { size: 13, weight: '600' },
-                        bodyFont: { size: 12 }
-                    }
-                }
+        document.getElementById('tab-' + name).classList.add('active');
+        document.getElementById('panel-' + name).classList.add('active');
+
+        // Trigger chart resize when switching to Monitoramento
+        if (name === 'monitoramento') {
+            setTimeout(() => {
+                if (cultState.charts.monTemp) cultState.charts.monTemp.resize();
+                if (cultState.charts.monAtm) cultState.charts.monAtm.resize();
+            }, 50);
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Helpers
+    ══════════════════════════════════════════════════════════════════════════ */
+    function getToken() {
+        return localStorage.getItem('agrocaua_token');
+    }
+
+    function fmtTs(ts) {
+        if (!ts) return '--';
+        return new Date(ts).toLocaleString('pt-PT', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function fmtTime(ts) {
+        if (!ts) return '--';
+        return new Date(ts).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    function getLatest(dados) {
+        if (!dados || !dados.length) return null;
+        return dados[0];
+    }
+
+    /* Extract fields from a sensor reading (handles nested bme280 or flat) */
+    function extractReading(item) {
+        if (!item) return {};
+        return {
+            temperatura_ar: item.temperatura_ar ?? item.bme280?.temperatura ?? item.temperatura ?? null,
+            humidade_solo:  item.humidade_solo ?? item.solo?.humidade ?? null,
+            humidade_ar:    item.humidade_ar ?? item.bme280?.humidade ?? item.humidade ?? null,
+            pressao_ar:     item.pressao_ar ?? item.bme280?.pressao ?? item.pressao ?? null,
+            detecao_praga:  item.detecao_praga ?? item.praga?.detecao ?? false,
+            tipo_praga:     item.tipo_praga ?? item.praga?.tipo ?? null,
+            confianca:      item.confianca ?? item.praga?.confianca ?? null,
+            lat:            item.latitude ?? item.gps?.latitude ?? item.lat ?? null,
+            lon:            item.longitude ?? item.gps?.longitude ?? item.lon ?? null,
+            timestamp:      item.timestamp ?? item.data_hora ?? null
+        };
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Fetch Data
+    ══════════════════════════════════════════════════════════════════════════ */
+    async function fetchCulturasData() {
+        const token = getToken();
+        if (!token) return;
+
+        try {
+            const resp = await fetch('/api/dados_sensores?limit=30', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!resp.ok) {
+                console.error('[Culturas] API error', resp.status);
+                showError('Erro ao carregar dados dos sensores (' + resp.status + ')');
+                return;
             }
+
+            const data = await resp.json();
+            const dados = Array.isArray(data) ? data : (data.dados || data.leituras || []);
+
+            cultState.dados = dados;
+
+            renderKPIs(dados);
+            renderVisaoGeral(dados);
+            renderMonitoramento(dados);
+            renderAlertas(dados);
+            renderRecomendacoes(dados);
+            renderPestHistory(dados);
+            renderOperacoesHistorico();
+
+            console.log('[Culturas] Data updated successfully');
+        } catch (e) {
+            console.error('[Culturas] fetch error:', e);
+            showError('Erro de rede ao carregar dados das culturas');
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       KPIs
+    ══════════════════════════════════════════════════════════════════════════ */
+    function renderKPIs(dados) {
+        const latest = getLatest(dados);
+        const r = extractReading(latest);
+
+        // Índice de Saúde
+        let saude = '--';
+        let saudeBadgeClass = 'badge-info';
+        let saudeBadgeText = 'Sem dados';
+        if (r.temperatura_ar != null && r.humidade_solo != null) {
+            let score = 50;
+            if (r.temperatura_ar >= 15 && r.temperatura_ar <= 30) score += 25;
+            if (r.humidade_solo >= 40 && r.humidade_solo <= 70) score += 25;
+            saude = score + '%';
+            if (score >= 90) { saudeBadgeClass = 'badge-success'; saudeBadgeText = 'Excelente'; }
+            else if (score >= 70) { saudeBadgeClass = 'badge-success'; saudeBadgeText = 'Bom'; }
+            else if (score >= 50) { saudeBadgeClass = 'badge-warning'; saudeBadgeText = 'Regular'; }
+            else { saudeBadgeClass = 'badge-danger'; saudeBadgeText = 'Crítico'; }
+        }
+        document.getElementById('kpiSaude').textContent = saude;
+        const kpiSaudeBadge = document.getElementById('kpiSaudeBadge');
+        kpiSaudeBadge.textContent = saudeBadgeText;
+        kpiSaudeBadge.className = 'badge ' + saudeBadgeClass;
+        kpiSaudeBadge.style.display = latest ? '' : 'none';
+
+        // Temp
+        document.getElementById('kpiTemp').textContent = r.temperatura_ar != null ? r.temperatura_ar.toFixed(1) + '°C' : '--';
+
+        // Hum Solo + badge
+        const humSoloEl = document.getElementById('kpiHumSolo');
+        const humSoloBadge = document.getElementById('kpiHumSoloBadge');
+        if (r.humidade_solo != null) {
+            humSoloEl.textContent = r.humidade_solo.toFixed(1) + '%';
+            humSoloBadge.style.display = '';
+            if (r.humidade_solo < 30) {
+                humSoloBadge.className = 'badge badge-danger'; humSoloBadge.textContent = 'Seco';
+            } else if (r.humidade_solo <= 60) {
+                humSoloBadge.className = 'badge badge-warning'; humSoloBadge.textContent = 'Normal';
+            } else {
+                humSoloBadge.className = 'badge badge-success'; humSoloBadge.textContent = 'Húmido';
+            }
+        } else {
+            humSoloEl.textContent = '--';
+            humSoloBadge.style.display = 'none';
+        }
+
+        // Estado Pragas
+        const pragasBadge = document.getElementById('kpiPragasBadge');
+        if (r.detecao_praga === true || r.detecao_praga === 1) {
+            pragasBadge.className = 'badge badge-danger'; pragasBadge.textContent = 'Detetada';
+        } else {
+            pragasBadge.className = 'badge badge-success'; pragasBadge.textContent = 'Normal';
+        }
+
+        // Pressão
+        document.getElementById('kpiPressao').textContent = r.pressao_ar != null ? r.pressao_ar.toFixed(0) + ' hPa' : '--';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Visão Geral
+    ══════════════════════════════════════════════════════════════════════════ */
+    function renderVisaoGeral(dados) {
+        const latest = getLatest(dados);
+        const r = extractReading(latest);
+
+        // Identificação: cultura from fazenda if available
+        const cultura = latest?.fazenda?.cultura || latest?.cultura || '—';
+        document.getElementById('infoNomeCultura').textContent = cultura;
+
+        // Localização
+        document.getElementById('infoLat').textContent = r.lat != null ? r.lat.toFixed(6) : '—';
+        document.getElementById('infoLon').textContent = r.lon != null ? r.lon.toFixed(6) : '—';
+
+        // Dados ambientais
+        document.getElementById('infoTemp').textContent = r.temperatura_ar != null ? r.temperatura_ar.toFixed(1) + ' °C' : '—';
+        document.getElementById('infoHumAr').textContent = r.humidade_ar != null ? r.humidade_ar.toFixed(1) + ' %' : '—';
+        document.getElementById('infoPressao').textContent = r.pressao_ar != null ? r.pressao_ar.toFixed(0) + ' hPa' : '—';
+
+        // Solo
+        document.getElementById('infoHumSolo').textContent = r.humidade_solo != null ? r.humidade_solo.toFixed(1) + ' %' : '—';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Monitoramento Charts
+    ══════════════════════════════════════════════════════════════════════════ */
+    function destroyMonCharts() {
+        if (cultState.charts.monTemp) { cultState.charts.monTemp.destroy(); cultState.charts.monTemp = null; }
+        if (cultState.charts.monAtm) { cultState.charts.monAtm.destroy(); cultState.charts.monAtm = null; }
+    }
+
+    function renderMonitoramento(dados) {
+        destroyMonCharts();
+
+        const slice = dados.slice(0, 20).reverse();
+        const labels = slice.map(d => fmtTime(d.timestamp || d.data_hora));
+        const temps = slice.map(d => extractReading(d).temperatura_ar);
+        const humSolo = slice.map(d => extractReading(d).humidade_solo);
+        const humAr = slice.map(d => extractReading(d).humidade_ar);
+        const pressao = slice.map(d => {
+            const p = extractReading(d).pressao_ar;
+            return p != null ? p / 10 : null;  // scale for dual-axis readability
         });
 
-        // Environmental Conditions Bar Chart - Empty data initially
-        culturaState.charts.envConditions = new Chart(document.getElementById('environmentalConditionsChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Temperatura', 'Humidade', 'Luminosidade', 'pH Solo', 'Nutrientes'],
-                datasets: [{
-                    label: 'Valor',
-                    data: [0, 0, 0, 0, 0],
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.85)',
-                        'rgba(59, 130, 246, 0.85)',
-                        'rgba(251, 191, 36, 0.85)',
-                        'rgba(34, 197, 94, 0.85)',
-                        'rgba(139, 92, 246, 0.85)'
-                    ],
-                    borderColor: [
-                        'rgb(239, 68, 68)',
-                        'rgb(59, 130, 246)',
-                        'rgb(251, 191, 36)',
-                        'rgb(34, 197, 94)',
-                        'rgb(139, 92, 246)'
-                    ],
-                    borderWidth: 1.5,
-                    borderRadius: 6,
-                    barPercentage: 0.7
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        bodyFont: { size: 12 }
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                    }
-                }
-            }
-        });
-
-        // Soil Quality Trend Line Chart - Empty data initially
-        culturaState.charts.soilTrend = new Chart(document.getElementById('soilTrendChart'), {
+        // Chart 1: Temp + Hum Solo
+        const ctx1 = document.getElementById('chartMonTemp').getContext('2d');
+        cultState.charts.monTemp = new Chart(ctx1, {
             type: 'line',
             data: {
-                labels: ['Sem 1', 'Sem 3', 'Sem 5', 'Sem 7', 'Sem 9', 'Sem 11', 'Sem 13'],
+                labels: labels,
                 datasets: [
                     {
-                        label: 'Nível pH',
-                        data: [0, 0, 0, 0, 0, 0, 0],
-                        borderColor: 'rgb(251, 191, 36)',
-                        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+                        label: 'Temperatura (°C)',
+                        data: temps,
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.06)',
                         borderWidth: 2.5,
                         tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: 'rgb(251, 191, 36)',
+                        fill: false,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: 'rgb(239, 68, 68)',
                         pointBorderColor: 'white',
-                        pointBorderWidth: 2
+                        pointBorderWidth: 1.5,
+                        yAxisID: 'yT'
                     },
                     {
-                        label: 'Humidade (%)',
-                        data: [0, 0, 0, 0, 0, 0, 0],
+                        label: 'Humidade Solo (%)',
+                        data: humSolo,
                         borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.06)',
                         borderWidth: 2.5,
                         tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
+                        fill: false,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
                         pointBackgroundColor: 'rgb(59, 130, 246)',
                         pointBorderColor: 'white',
-                        pointBorderWidth: 2
-                    },
-                    {
-                        label: 'Nutrientes (índice)',
-                        data: [0, 0, 0, 0, 0, 0, 0],
-                        borderColor: 'rgb(34, 197, 94)',
-                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: 'rgb(34, 197, 94)',
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2
+                        pointBorderWidth: 1.5,
+                        yAxisID: 'yH'
                     }
                 ]
             },
@@ -345,169 +802,505 @@
                 maintainAspectRatio: false,
                 interaction: { intersect: false, mode: 'index' },
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 20, font: { size: 12, weight: '500' } }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: { size: 13, weight: '600' },
-                        bodyFont: { size: 12 }
-                    }
+                    legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } },
+                    tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10 }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: false,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    yT: { type: 'linear', position: 'left', title: { display: true, text: 'Temp (°C)' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    yH: { type: 'linear', position: 'right', min: 0, max: 100, title: { display: true, text: 'Hum Solo (%)' }, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Chart 2: Hum Ar + Pressão/10
+        const ctx2 = document.getElementById('chartMonAtm').getContext('2d');
+        cultState.charts.monAtm = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Humidade Ar (%)',
+                        data: humAr,
+                        backgroundColor: 'rgba(34, 197, 94, 0.65)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        yAxisID: 'yHumAr'
                     },
-                    x: {
-                        grid: { display: false }
+                    {
+                        label: 'Pressão ÷10 (hPa/10)',
+                        data: pressao,
+                        type: 'line',
+                        borderColor: 'rgb(139, 92, 246)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgb(139, 92, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 1.5,
+                        yAxisID: 'yPres'
                     }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } },
+                    tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10 }
+                },
+                scales: {
+                    yHumAr: { type: 'linear', position: 'left', min: 0, max: 100, title: { display: true, text: 'Hum Ar (%)' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    yPres: { type: 'linear', position: 'right', title: { display: true, text: 'Pressão/10' }, grid: { display: false } },
+                    x: { grid: { display: false } }
                 }
             }
         });
     }
 
-    function updateKPIs(data) {
-        // Only update KPIs if we have real data from API
-        if (!data || data.length === 0) {
-            // Show zeros/dashes when no data is available
-            document.getElementById('healthIndex').textContent = '0';
-            document.getElementById('cultivatedArea').textContent = '0';
-            document.getElementById('harvestDays').textContent = '0';
-            document.getElementById('estimatedProduction').textContent = '0';
+    /* ═══════════════════════════════════════════════════════════════════════
+       Pest History Table
+    ══════════════════════════════════════════════════════════════════════════ */
+    function renderPestHistory(dados) {
+        const tbody = document.getElementById('pestHistoryBody');
+        const pestEvents = dados
+            .map(d => ({ ...extractReading(d), _ts: d.timestamp || d.data_hora }))
+            .filter(r => r.detecao_praga === true || r.detecao_praga === 1);
+
+        if (!pestEvents.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-400">Nenhuma praga detetada nas últimas leituras</td></tr>';
             return;
         }
-        
-        const latest = data[0];
-        
-        // Calculate health index based on sensor data if available
-        let healthScore = 0;
-        let hasValidBMEData = false;
-        
-        if (latest.bme280?.temperatura != null && latest.bme280?.humidade != null) {
-            hasValidBMEData = true;
-            const temp = latest.bme280.temperatura;
-            const humidity = latest.bme280.humidade;
-            
-            // Calculate health score based on optimal ranges
-            let score = 50; // Base score
-            if (temp >= 15 && temp <= 30) score += 25; // Optimal temperature
-            if (humidity >= 40 && humidity <= 70) score += 25; // Optimal humidity
-            healthScore = Math.round(score);
+
+        tbody.innerHTML = pestEvents.map(r => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-2 px-3 text-gray-700 whitespace-nowrap">${fmtTs(r._ts)}</td>
+                <td class="py-2 px-3 text-gray-900 font-500">${r.tipo_praga || 'Não identificada'}</td>
+                <td class="py-2 px-3 text-gray-700">${r.confianca != null ? (r.confianca * 100).toFixed(0) + '%' : '—'}</td>
+                <td class="py-2 px-3"><span class="badge badge-danger">Detetada</span></td>
+            </tr>`).join('');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Alertas
+    ══════════════════════════════════════════════════════════════════════════ */
+    function renderAlertas(dados) {
+        const latest = getLatest(dados);
+        const r = extractReading(latest);
+        const container = document.getElementById('alertasContainer');
+        const alerts = [];
+
+        if (r.humidade_solo != null && r.humidade_solo < 30) {
+            alerts.push({
+                type: 'critical',
+                icon: '💧',
+                title: 'Solo Seco',
+                msg: `Humidade do solo está em ${r.humidade_solo.toFixed(1)}% — abaixo do limite mínimo (30%).`,
+                action: '💧 Ligar Irrigação'
+            });
         }
-        
-        // Display KPI values only if we have valid sensor data
-        // Note: cultivatedArea, harvestDays, and estimatedProduction are derived from crop data
-        // which is not available in the current API, so we show 0 as placeholder
-        if (hasValidBMEData) {
-            document.getElementById('healthIndex').textContent = healthScore + '%';
+        if (r.humidade_solo != null && r.humidade_solo > 80) {
+            alerts.push({
+                type: 'warning',
+                icon: '🌊',
+                title: 'Solo Encharcado',
+                msg: `Humidade do solo está em ${r.humidade_solo.toFixed(1)}% — acima do limite máximo (80%).`,
+                action: 'Reduzir irrigação'
+            });
+        }
+        if (r.temperatura_ar != null && r.temperatura_ar > 35) {
+            alerts.push({
+                type: 'warning',
+                icon: '🌡️',
+                title: 'Temperatura Alta',
+                msg: `Temperatura em ${r.temperatura_ar.toFixed(1)}°C — pode causar stress térmico nas culturas.`,
+                action: '🌡️ Instalar Sombrite'
+            });
+        }
+        if (r.temperatura_ar != null && r.temperatura_ar < 15) {
+            alerts.push({
+                type: 'warning',
+                icon: '🧊',
+                title: 'Temperatura Baixa',
+                msg: `Temperatura em ${r.temperatura_ar.toFixed(1)}°C — risco de dano por frio.`,
+                action: '🧊 Proteger Cultura'
+            });
+        }
+        if (r.detecao_praga === true || r.detecao_praga === 1) {
+            alerts.push({
+                type: 'critical',
+                icon: '🐛',
+                title: 'Praga Detetada',
+                msg: 'O sensor detetou a presença de pragas. Ação imediata recomendada.',
+                action: '🐛 Aplicar Pesticida'
+            });
+        }
+        if (r.pressao_ar != null && (r.pressao_ar < 1000 || r.pressao_ar > 1030)) {
+            alerts.push({
+                type: 'info',
+                icon: '🌀',
+                title: 'Pressão Anormal',
+                msg: `Pressão atmosférica em ${r.pressao_ar.toFixed(0)} hPa — fora do intervalo normal (1000–1030 hPa).`,
+                action: 'Monitorizar clima'
+            });
+        }
+
+        // Update badge count
+        const badge = document.getElementById('alertaCount');
+        if (alerts.length > 0) {
+            badge.style.display = '';
+            badge.textContent = alerts.length;
         } else {
-            document.getElementById('healthIndex').textContent = '0';
+            badge.style.display = 'none';
         }
-        
-        // These values should come from crop management data (not in current API)
-        document.getElementById('cultivatedArea').textContent = '0';
-        document.getElementById('harvestDays').textContent = '0';
-        document.getElementById('estimatedProduction').textContent = '0';
-    }
 
-    function updateZonesTable(data) {
-        // Generate zones based on available data
-        const zones = [
-            { zone: 'Zona Monitorada', crop: 'Vários', area: '12.5 ha', stage: 'Crescimento', health: 'Bom' }
-        ];
-
-        const tbody = document.getElementById('zonesTableBody');
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">Sem dados de zonas disponíveis</td></tr>';
+        if (!alerts.length) {
+            container.innerHTML = `
+                <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0.75rem;">
+                    <i class="icon-check-circle text-green-600 text-2xl"></i>
+                    <div>
+                        <p class="font-600 text-green-800 text-sm">Sem alertas ativos</p>
+                        <p class="text-xs text-green-700 mt-0.5">Todas as condições estão dentro dos parâmetros normais.</p>
+                    </div>
+                </div>`;
             return;
         }
-        
-        tbody.innerHTML = zones.map(z => `
-            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <td class="py-3 px-4 font-500 text-gray-900">${z.zone}</td>
-                <td class="py-3 px-4 text-gray-700">${z.crop}</td>
-                <td class="py-3 px-4 text-gray-700">${z.area}</td>
-                <td class="py-3 px-4 text-gray-700">${z.stage}</td>
-                <td class="py-3 px-4">
-                    <span class="badge ${z.health === 'Excelente' ? 'badge-success' : z.health === 'Bom' ? 'badge-info' : 'badge-warning'}">
-                        ${z.health}
-                    </span>
-                </td>
-                <td class="py-3 px-4">
-                    <button class="text-green-600 hover:text-green-700 font-500">Detalhes</button>
-                </td>
-            </tr>
-        `).join('');
+
+        const typeMap = {
+            critical: 'alert-card-critical',
+            warning: 'alert-card-warning',
+            info: 'alert-card-info'
+        };
+        const iconColorMap = {
+            critical: 'text-red-600',
+            warning: 'text-amber-600',
+            info: 'text-blue-600'
+        };
+        const titleColorMap = {
+            critical: 'text-red-800',
+            warning: 'text-amber-800',
+            info: 'text-blue-800'
+        };
+        const msgColorMap = {
+            critical: 'text-red-700',
+            warning: 'text-amber-700',
+            info: 'text-blue-700'
+        };
+
+        container.innerHTML = alerts.map(a => `
+            <div class="alert-card ${typeMap[a.type] || 'alert-card-info'}">
+                <div style="font-size:1.5rem;flex-shrink:0;">${a.icon}</div>
+                <div style="flex:1;">
+                    <p class="font-600 text-sm ${titleColorMap[a.type]}">${a.title}</p>
+                    <p class="text-xs mt-0.5 ${msgColorMap[a.type]}">${a.msg}</p>
+                    <button class="btn btn-sm mt-2" style="font-size:11px;padding:3px 10px;border:1px solid currentColor;"
+                            onclick="showSuccess('Ação registada: ${a.action.replace(/'/g, '')}')">
+                        ${a.action}
+                    </button>
+                </div>
+            </div>`).join('');
     }
 
-    // Setup auto-refresh
-    function setupAutoRefresh() {
-        if (culturaState.refreshInterval) {
-            clearInterval(culturaState.refreshInterval);
+    /* ═══════════════════════════════════════════════════════════════════════
+       Recomendações Inteligentes
+    ══════════════════════════════════════════════════════════════════════════ */
+    function renderRecomendacoes(dados) {
+        const latest = getLatest(dados);
+        const r = extractReading(latest);
+        const container = document.getElementById('recomendacoesContainer');
+        const recs = [];
+
+        if (r.humidade_solo != null && r.humidade_solo < 40) {
+            recs.push({
+                cls: 'rec-danger',
+                icon: '💧',
+                title: 'Irrigação necessária',
+                msg: 'Solo abaixo do ideal. Irrigue com 20–30mm para restabelecer a humidade adequada.'
+            });
         }
-        
-        culturaState.refreshInterval = setInterval(() => {
+        if (r.temperatura_ar != null && r.temperatura_ar > 30) {
+            recs.push({
+                cls: 'rec-warn',
+                icon: '☀️',
+                title: 'Proteção contra calor',
+                msg: 'Considere instalar sombrite ou aplicar irrigação foliar nas horas mais quentes.'
+            });
+        }
+        if (r.detecao_praga === true || r.detecao_praga === 1) {
+            recs.push({
+                cls: 'rec-danger',
+                icon: '🐛',
+                title: 'Controlo de pragas',
+                msg: 'Faça inspeção visual da lavoura e aplique tratamento preventivo. Evite aplicar em dias chuvosos.'
+            });
+        }
+
+        if (!recs.length) {
+            recs.push({
+                cls: '',
+                icon: '✅',
+                title: 'Condições favoráveis',
+                msg: 'As condições atuais são adequadas para o desenvolvimento das culturas. Monitorize regularmente.'
+            });
+        }
+
+        container.innerHTML = recs.map(rec => `
+            <div class="rec-card ${rec.cls}">
+                <div style="font-size:1.25rem;margin-bottom:0.375rem;">${rec.icon}</div>
+                <p class="font-600 text-sm text-gray-900">${rec.title}</p>
+                <p class="text-xs text-gray-600 mt-1">${rec.msg}</p>
+            </div>`).join('');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Operações (localStorage)
+    ══════════════════════════════════════════════════════════════════════════ */
+    const OP_KEY = 'agrocaua_operacoes';
+
+    function saveOperation(evt, tipo) {
+        evt.preventDefault();
+        const form = evt.target;
+        const fd = new FormData(form);
+        const entry = { tipo, timestamp: new Date().toISOString() };
+        for (const [k, v] of fd.entries()) { entry[k] = v; }
+
+        try {
+            const ops = JSON.parse(localStorage.getItem(OP_KEY) || '[]');
+            ops.unshift(entry);
+            // Keep last 50
+            if (ops.length > 50) ops.length = 50;
+            localStorage.setItem(OP_KEY, JSON.stringify(ops));
+        } catch (e) {
+            console.error('[Culturas] Error saving operation:', e);
+        }
+
+        form.reset();
+        renderOperacoesHistorico();
+        showSuccess('Operação guardada com sucesso');
+    }
+
+    function clearOperations() {
+        if (!confirm('Tem a certeza que deseja limpar todo o histórico de operações?')) return;
+        localStorage.removeItem(OP_KEY);
+        renderOperacoesHistorico();
+        showSuccess('Histórico limpo');
+    }
+
+    function renderOperacoesHistorico() {
+        const container = document.getElementById('operacoesHistorico');
+        let ops = [];
+        try {
+            ops = JSON.parse(localStorage.getItem(OP_KEY) || '[]');
+        } catch (e) { ops = []; }
+
+        const last10 = ops.slice(0, 10);
+
+        if (!last10.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Sem operações registadas</p>';
+            return;
+        }
+
+        const tipoIcon = { irrigacao: '💧', fertilizacao: '🌿', pulverizacao: '💨' };
+        const tipoLabel = { irrigacao: 'Irrigação', fertilizacao: 'Fertilização', pulverizacao: 'Pulverização' };
+
+        container.innerHTML = last10.map(op => {
+            const icon = tipoIcon[op.tipo] || '📋';
+            const label = tipoLabel[op.tipo] || op.tipo;
+            const ts = new Date(op.timestamp).toLocaleString('pt-PT', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+
+            let detail = '';
+            if (op.tipo === 'irrigacao') {
+                detail = [op.duracao ? op.duracao + ' min' : '', op.volume ? op.volume + ' L' : ''].filter(Boolean).join(' · ');
+            } else if (op.tipo === 'fertilizacao' || op.tipo === 'pulverizacao') {
+                detail = [op.produto || '', op.dose ? op.dose + ' kg/ha' : '', op.area ? op.area + ' ha' : ''].filter(Boolean).join(' · ');
+            }
+
+            return `
+                <div style="display:flex;align-items:flex-start;gap:0.625rem;padding:0.625rem 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="font-size:1.125rem;flex-shrink:0;">${icon}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
+                            <span class="text-sm font-600 text-gray-900">${label}</span>
+                            <span class="text-xs text-gray-400 whitespace-nowrap">${op.data || ts}</span>
+                        </div>
+                        ${detail ? `<p class="text-xs text-gray-500 mt-0.5">${detail}</p>` : ''}
+                        ${op.notas ? `<p class="text-xs text-gray-400 mt-0.5 italic">${op.notas}</p>` : ''}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Auto-Refresh
+    ══════════════════════════════════════════════════════════════════════════ */
+    function setupAutoRefresh() {
+        if (cultState.refreshInterval) clearInterval(cultState.refreshInterval);
+        cultState.refreshInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
                 console.log('[Culturas] Auto-refreshing...');
                 fetchCulturasData();
             }
-        }, 60000); // 60 seconds
+        }, 60000);
     }
 
-    function updateSoilTrendChart() {
-        // This function is called when filter changes
-        console.log('[Culturas] Updating soil trend chart...');
-    }
-
-    function openNewZoneModal() {
-        showInfo('Funcionalidade de nova zona em desenvolvimento');
-    }
-
-    // Fetch and update data
-    async function fetchCulturasData() {
-        try {
-            const response = await API.getAllData();
-            if (response.ok) {
-                const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    updateKPIs(data);
-                    updateZonesTable(data);
-                    console.log('[Culturas] Data updated successfully');
-                } else {
-                    showWarning('Nenhum dado disponível');
-                }
-            }
-        } catch (error) {
-            console.error('[Culturas] Error:', error);
-            showError('Erro ao carregar dados das culturas');
-        }
-    }
-
-    // Initialize
+    /* ═══════════════════════════════════════════════════════════════════════
+       Init & Cleanup
+    ══════════════════════════════════════════════════════════════════════════ */
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[Culturas] Initializing...');
-        initCharts();
+        renderOperacoesHistorico(); // render from localStorage immediately
         fetchCulturasData();
         setupAutoRefresh();
+        renderZonas();
     });
 
-    // Cleanup
     window.addEventListener('beforeunload', () => {
-        if (culturaState.refreshInterval) {
-            clearInterval(culturaState.refreshInterval);
+        if (cultState.refreshInterval) clearInterval(cultState.refreshInterval);
+        destroyMonCharts();
+    });
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       ZONAS / TALHÕES
+    ══════════════════════════════════════════════════════════════════════════ */
+    const ZONAS_KEY = 'agrocaua_zonas';
+
+    function getZonas() {
+        try { return JSON.parse(localStorage.getItem(ZONAS_KEY)) || []; } catch { return []; }
+    }
+    function saveZonas(list) {
+        localStorage.setItem(ZONAS_KEY, JSON.stringify(list));
+    }
+
+    const STATUS_ZONA = {
+        ativa:       { label: 'Ativa',         color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+        pousio:      { label: 'Pousio',         color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+        preparacao:  { label: 'Em preparação',  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+        colheita:    { label: 'Em colheita',    color: '#7c3aed', bg: '#faf5ff', border: '#e9d5ff' },
+    };
+
+    function renderZonas() {
+        const zonas = getZonas();
+        const grid = document.getElementById('zonaGrid');
+
+        document.getElementById('zonaTotal').textContent = zonas.length;
+        document.getElementById('zonaAtivas').textContent = zonas.filter(z => z.status === 'ativa').length;
+        const totalHa = zonas.reduce((s, z) => s + (parseFloat(z.area) || 0), 0);
+        document.getElementById('zonaHa').textContent = totalHa.toFixed(1);
+        const culturas = new Set(zonas.map(z => z.cultura).filter(Boolean));
+        document.getElementById('zonaCulturas').textContent = culturas.size;
+
+        if (!zonas.length) {
+            grid.innerHTML = `
+                <div style="border:2px dashed #d1fae5;border-radius:0.75rem;padding:2rem;text-align:center;color:#9ca3af;cursor:pointer;" onclick="abrirModalZona()">
+                    <i class="icon-plus-circle text-3xl text-green-300 block mb-2"></i>
+                    <p class="text-sm font-500">Adicionar primeira zona</p>
+                    <p class="text-xs mt-1">Clique para criar uma nova zona ou talhão</p>
+                </div>`;
+            return;
         }
-        Object.values(culturaState.charts).forEach(chart => {
-            if (chart) {
-                try {
-                    chart.destroy();
-                } catch (e) {
-                    console.warn('Error destroying chart:', e);
-                }
-            }
-        });
+
+        grid.innerHTML = zonas.map((z, i) => {
+            const st = STATUS_ZONA[z.status] || STATUS_ZONA.ativa;
+            return `
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.06)'">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;">
+                    <div>
+                        <h4 style="font-size:0.925rem;font-weight:700;color:#111827;">${z.nome}</h4>
+                        ${z.cultura ? `<p style="font-size:0.775rem;color:#6b7280;margin-top:0.1rem;">${z.cultura}</p>` : ''}
+                    </div>
+                    <span style="font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:999px;background:${st.bg};color:${st.color};border:1px solid ${st.border};">${st.label}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.75rem;">
+                    ${z.area ? `<div style="background:#f9fafb;border-radius:0.5rem;padding:0.5rem;text-align:center;"><p style="font-size:1rem;font-weight:700;color:#111827;">${z.area}</p><p style="font-size:0.68rem;color:#9ca3af;text-transform:uppercase;">Hectares</p></div>` : ''}
+                    ${z.dataPlantio ? `<div style="background:#f9fafb;border-radius:0.5rem;padding:0.5rem;text-align:center;"><p style="font-size:0.8rem;font-weight:600;color:#374151;">${new Date(z.dataPlantio).toLocaleDateString('pt-PT')}</p><p style="font-size:0.68rem;color:#9ca3af;text-transform:uppercase;">Plantio</p></div>` : ''}
+                </div>
+                ${z.localizacao ? `<p style="font-size:0.75rem;color:#6b7280;display:flex;align-items:center;gap:0.25rem;margin-bottom:0.625rem;"><i class="icon-map-pin text-xs"></i>${z.localizacao}</p>` : ''}
+                ${z.notas ? `<p style="font-size:0.75rem;color:#9ca3af;font-style:italic;margin-bottom:0.625rem;">"${z.notas}"</p>` : ''}
+                <div style="display:flex;gap:0.5rem;margin-top:0.5rem;border-top:1px solid #f3f4f6;padding-top:0.625rem;">
+                    <button onclick="editarZona(${i})" style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.25rem;padding:0.375rem;border:1px solid #e5e7eb;border-radius:0.375rem;font-size:0.75rem;color:#374151;background:white;cursor:pointer;">
+                        <i class="icon-edit-3 text-xs"></i> Editar
+                    </button>
+                    <button onclick="eliminarZona(${i})" style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.25rem;padding:0.375rem;border:1px solid #fca5a5;border-radius:0.375rem;font-size:0.75rem;color:#dc2626;background:#fff5f5;cursor:pointer;">
+                        <i class="icon-trash-2 text-xs"></i> Eliminar
+                    </button>
+                </div>
+            </div>`;
+        }).join('') + `
+        <div style="border:2px dashed #d1fae5;border-radius:0.75rem;padding:1.5rem;text-align:center;color:#9ca3af;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="abrirModalZona()">
+            <i class="icon-plus text-2xl text-green-400 block mb-1"></i>
+            <p class="text-sm font-500">Adicionar zona</p>
+        </div>`;
+    }
+
+    function abrirModalZona(idx) {
+        document.getElementById('zonaEditId').value = idx !== undefined ? idx : '';
+        document.getElementById('modalZonaTitulo').textContent = idx !== undefined ? 'Editar Zona' : 'Nova Zona / Talhão';
+        if (idx !== undefined) {
+            const z = getZonas()[idx];
+            document.getElementById('zonaNome').value = z.nome || '';
+            document.getElementById('zonaCultura').value = z.cultura || '';
+            document.getElementById('zonaArea').value = z.area || '';
+            document.getElementById('zonaStatus').value = z.status || 'ativa';
+            document.getElementById('zonaDataPlantio').value = z.dataPlantio || '';
+            document.getElementById('zonaLocalizacao').value = z.localizacao || '';
+            document.getElementById('zonaNotas').value = z.notas || '';
+        } else {
+            ['zonaNome','zonaCultura','zonaArea','zonaLocalizacao','zonaNotas'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('zonaStatus').value = 'ativa';
+            document.getElementById('zonaDataPlantio').value = '';
+        }
+        const m = document.getElementById('modalZona');
+        m.style.display = 'flex';
+    }
+
+    function fecharModalZona() {
+        document.getElementById('modalZona').style.display = 'none';
+    }
+
+    function salvarZona() {
+        const nome = document.getElementById('zonaNome').value.trim();
+        if (!nome) { if (typeof showWarning === 'function') showWarning('O nome da zona é obrigatório.'); return; }
+        const zona = {
+            nome,
+            cultura: document.getElementById('zonaCultura').value.trim(),
+            area: document.getElementById('zonaArea').value,
+            status: document.getElementById('zonaStatus').value,
+            dataPlantio: document.getElementById('zonaDataPlantio').value,
+            localizacao: document.getElementById('zonaLocalizacao').value.trim(),
+            notas: document.getElementById('zonaNotas').value.trim(),
+        };
+        const zonas = getZonas();
+        const editIdx = document.getElementById('zonaEditId').value;
+        if (editIdx !== '') {
+            zonas[parseInt(editIdx)] = zona;
+        } else {
+            zonas.push(zona);
+        }
+        saveZonas(zonas);
+        fecharModalZona();
+        renderZonas();
+        if (typeof showSuccess === 'function') showSuccess(editIdx !== '' ? 'Zona atualizada!' : 'Zona adicionada com sucesso!');
+    }
+
+    function editarZona(idx) { abrirModalZona(idx); }
+
+    function eliminarZona(idx) {
+        if (!confirm('Eliminar esta zona permanentemente?')) return;
+        const zonas = getZonas();
+        zonas.splice(idx, 1);
+        saveZonas(zonas);
+        renderZonas();
+        if (typeof showSuccess === 'function') showSuccess('Zona eliminada.');
+    }
+
+    document.getElementById('modalZona').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalZona')) fecharModalZona();
     });
 </script>
 {% endblock %}

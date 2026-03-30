@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - AgroCaua{% endblock %}
+
+{% block page_title %}Os Meus Relatórios{% endblock %}
+{% block page_icon %}<i class="icon-bar-chart-2 text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Histórico das actividades e dados da sua fazenda{% endblock %}
+
+{% block extra_head %}
+<style>
+    .periodo-btn {
+        padding: .5rem 1.25rem;
+        border: 1.5px solid #e5e7eb;
+        background: white;
+        border-radius: .5rem;
+        font-size: .825rem;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .15s;
+        font-family: inherit;
+    }
+    .periodo-btn:hover { border-color: #2E8B57; color: #2E8B57; }
+    .periodo-btn.active { background: #ecfdf5; border-color: #2E8B57; color: #2E8B57; }
+    .section-title {
+        font-size: .9rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: 1rem;
+        padding-bottom: .5rem;
+        border-bottom: 1.5px solid #f3f4f6;
+    }
+    .op-badge {
+        display: inline-flex; align-items: center; gap: .25rem;
+        font-size: .7rem; font-weight: 600; padding: .15rem .5rem;
+        border-radius: 999px; text-transform: uppercase;
+    }
+    .op-irrigacao  { background: #dbeafe; color: #1d4ed8; }
+    .op-fertilizacao { background: #dcfce7; color: #15803d; }
+    .op-pulverizacao { background: #f3e8ff; color: #7c3aed; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Info do Agricultor + Período -->
+<div class="card mb-6" style="padding:1.25rem;">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <!-- Info pessoal -->
+        <div class="flex items-center gap-3">
+            <div style="width:2.75rem;height:2.75rem;background:linear-gradient(135deg,#2E8B57,#1a6b3c);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.1rem;" id="avatarIniciais">?</div>
+            <div>
+                <p class="font-700 text-gray-900 text-sm" id="nomeAgric">Agricultor</p>
+                <p class="text-xs text-gray-500">Gerado em <span id="dataGeracao"></span></p>
+            </div>
+        </div>
+
+        <!-- Seletor de período -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-600 text-gray-600">Período:</span>
+            <button class="periodo-btn active" id="btnSemanal" onclick="setPeriodo('semanal')">Semanal</button>
+            <button class="periodo-btn" id="btnMensal"  onclick="setPeriodo('mensal')">Mensal</button>
+            <button class="periodo-btn" id="btnAnual"   onclick="setPeriodo('anual')">Anual</button>
+        </div>
+
+        <!-- Exportar -->
+        <div class="flex gap-2">
+            <button onclick="exportarExcel()"
+                style="display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border:1.5px solid #22c55e;border-radius:.5rem;font-size:.8rem;font-weight:600;color:#16a34a;background:#f0fdf4;cursor:pointer;">
+                <i class="icon-file-spreadsheet"></i> Excel
+            </button>
+            <button onclick="exportarPDF()"
+                style="display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border:1.5px solid #f87171;border-radius:.5rem;font-size:.8rem;font-weight:600;color:#dc2626;background:#fff5f5;cursor:pointer;">
+                <i class="icon-file-text"></i> PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Leituras</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiLeituras">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-green-100"><i class="icon-activity text-green-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Média</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMedia">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-amber-100"><i class="icon-thermometer text-amber-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Máx</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMax">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100"><i class="icon-thermometer text-red-500 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Mín</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMin">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-blue-100"><i class="icon-thermometer text-blue-500 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Hum. Solo</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiHumSolo">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-cyan-100"><i class="icon-droplets text-cyan-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Pragas</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiPragas">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100"><i class="icon-bug text-red-500 text-xl"></i></div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="section-title">
+            <i class="icon-line-chart text-green-600"></i> Temperatura e Humidade do Solo
+        </h3>
+        <div style="position:relative;height:240px;">
+            <canvas id="chartTempHum"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <h3 class="section-title">
+            <i class="icon-bar-chart-2 text-red-500"></i> Detecção de Pragas por Dia
+        </h3>
+        <div style="position:relative;height:240px;">
+            <canvas id="chartPragas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Atividades Registadas (da fazenda local) -->
+<div class="card mb-6">
+    <h3 class="section-title">
+        <i class="icon-clipboard-list text-purple-600"></i> Atividades Registadas no Período
+    </h3>
+    <div id="atividadesContainer">
+        <p class="text-sm text-gray-400 text-center py-4">Sem atividades registadas para este período</p>
+    </div>
+</div>
+
+<!-- Tabela de dados diários -->
+<div class="card">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="section-title" style="margin-bottom:0;border-bottom:none;">
+            <i class="icon-table text-green-600"></i> Dados Detalhados por Dia
+        </h3>
+        <span class="text-xs text-gray-400" id="labelPeriodoTabela"></span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Data</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Temp (°C)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hum Solo (%)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hum Ar (%)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Pressão (hPa)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Pragas</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaDados">
+                <tr><td colspan="7" class="text-center py-8 text-gray-400">A carregar dados...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    let periodoAtual = 'semanal';
+    let dadosAtual   = null;
+    let nomeAgric    = 'Agricultor';
+    const rptCharts  = {};
+
+    // Inicializar cabeçalho do agricultor
+    (async function() {
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            const res = await fetch('/api/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (res.ok) {
+                const u = await res.json();
+                nomeAgric = u.nome || 'Agricultor';
+                document.getElementById('nomeAgric').textContent = nomeAgric;
+                const iniciais = nomeAgric.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('avatarIniciais').textContent = iniciais;
+            }
+        } catch {}
+    })();
+
+    document.getElementById('dataGeracao').textContent = new Date().toLocaleDateString('pt-PT');
+
+    function setPeriodo(p) {
+        periodoAtual = p;
+        ['Semanal', 'Mensal', 'Anual'].forEach(n => {
+            document.getElementById('btn' + n).classList.remove('active');
+        });
+        document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1)).classList.add('active');
+
+        const labels = { semanal: 'Últimos 7 dias', mensal: 'Últimos 30 dias', anual: 'Últimos 365 dias' };
+        document.getElementById('labelPeriodoTabela').textContent = labels[p] || '';
+
+        carregarDados();
+    }
+
+    async function carregarDados() {
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            const res = await fetch('/api/admin/relatorios/agricultor?periodo=' + periodoAtual, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error(res.status);
+            dadosAtual = await res.json();
+            renderizar();
+            renderAtividades();
+        } catch (e) {
+            console.error('[Relatórios Agricultor]', e);
+        }
+    }
+
+    function renderizar() {
+        if (!dadosAtual) return;
+        const r    = dadosAtual.resumo || {};
+        const dias = dadosAtual.grafico_diario || [];
+
+        document.getElementById('kpiLeituras').textContent  = r.total_leituras ?? '--';
+        document.getElementById('kpiTempMedia').textContent = r.temp_media    != null ? r.temp_media + '°C'    : '--';
+        document.getElementById('kpiTempMax').textContent   = r.temp_max      != null ? r.temp_max + '°C'      : '--';
+        document.getElementById('kpiTempMin').textContent   = r.temp_min      != null ? r.temp_min + '°C'      : '--';
+        document.getElementById('kpiHumSolo').textContent   = r.hum_solo_media != null ? r.hum_solo_media + '%' : '--';
+        document.getElementById('kpiPragas').textContent    = r.pragas_detectadas ?? '--';
+
+        const labels  = dias.map(d => d.data ? d.data.slice(5) : '');
+        const temps   = dias.map(d => d.temp);
+        const humSolo = dias.map(d => d.hum_solo);
+        const pragas  = dias.map(d => d.pragas || 0);
+
+        if (rptCharts.tempHum) rptCharts.tempHum.destroy();
+        rptCharts.tempHum = new Chart(document.getElementById('chartTempHum'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Temperatura (°C)', data: temps, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', tension: 0.35, pointRadius: 3, fill: true, borderWidth: 2 },
+                    { label: 'Hum. Solo (%)',    data: humSolo, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,.08)', tension: 0.35, pointRadius: 3, fill: true, borderWidth: 2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: { y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,.04)' } }, x: { grid: { display: false } } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+
+        if (rptCharts.pragas) rptCharts.pragas.destroy();
+        rptCharts.pragas = new Chart(document.getElementById('chartPragas'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Pragas detectadas', data: pragas, backgroundColor: 'rgba(239,68,68,.7)', borderRadius: 5, borderSkipped: false }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.04)' } }, x: { grid: { display: false } } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+
+        // Tabela
+        const tbody = document.getElementById('tabelaDados');
+        if (!dias.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">Sem dados para este período</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = dias.map(d => {
+            const tempColor = d.temp != null ? (d.temp > 35 ? '#dc2626' : d.temp < 15 ? '#2563eb' : '#111827') : '#9ca3af';
+            const humColor  = d.hum_solo != null ? (d.hum_solo < 20 ? '#dc2626' : d.hum_solo > 80 ? '#2563eb' : '#111827') : '#9ca3af';
+            let estadoHtml  = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#dcfce7;color:#15803d;">Normal</span>';
+            if (d.pragas > 0) estadoHtml = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#fee2e2;color:#dc2626;">Alerta</span>';
+            else if (d.temp > 35 || d.hum_solo < 20) estadoHtml = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#fef9c3;color:#854d0e;">Atenção</span>';
+            return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4 font-600 text-gray-900">${d.data || '--'}</td>
+                <td class="py-3 px-4" style="color:${tempColor};font-weight:500;">${d.temp ?? '--'}</td>
+                <td class="py-3 px-4" style="color:${humColor};font-weight:500;">${d.hum_solo ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${d.hum_ar ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${d.pressao ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${d.pragas > 0 ? `<span style="font-weight:600;color:#dc2626;">${d.pragas}</span>` : '0'}</td>
+                <td class="py-3 px-4">${estadoHtml}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderAtividades() {
+        // Carrega operações do localStorage (registadas no módulo Culturas)
+        const OPS_KEY = 'agrocaua_operations';
+        let ops = [];
+        try { ops = JSON.parse(localStorage.getItem(OPS_KEY)) || []; } catch {}
+
+        const agora = new Date();
+        const dias  = { semanal: 7, mensal: 30, anual: 365 }[periodoAtual] || 30;
+        const limite = new Date(agora - dias * 86400000);
+
+        const filtradas = ops.filter(op => {
+            try { return new Date(op.timestamp || op.data) >= limite; } catch { return false; }
+        }).sort((a, b) => new Date(b.timestamp || b.data) - new Date(a.timestamp || a.data));
+
+        const cont = document.getElementById('atividadesContainer');
+        if (!filtradas.length) {
+            cont.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Sem atividades registadas para este período. <br>Registe operações no módulo <a href="/dashboard/culturas" class="text-green-600 underline">Culturas → Operações</a>.</p>';
+            return;
+        }
+
+        const tipoMap = { irrigacao: { icon: 'icon-droplets', color: '#2563eb', cls: 'op-irrigacao', label: 'Irrigação' }, fertilizacao: { icon: 'icon-flask-conical', color: '#16a34a', cls: 'op-fertilizacao', label: 'Fertilização' }, pulverizacao: { icon: 'icon-spray-can', color: '#7c3aed', cls: 'op-pulverizacao', label: 'Pulverização' } };
+
+        cont.innerHTML = `<div class="space-y-2">` + filtradas.slice(0, 20).map(op => {
+            const t = tipoMap[op.tipo] || { icon: 'icon-clipboard', color: '#6b7280', cls: 'op-fertilizacao', label: op.tipo || 'Operação' };
+            const dataFmt = op.data ? new Date(op.data).toLocaleDateString('pt-PT') : '--';
+            const detalhes = [op.duracao ? `${op.duracao} min` : '', op.volume ? `${op.volume} L` : '', op.produto || '', op.dose ? `${op.dose} kg/ha` : ''].filter(Boolean).join(' · ');
+            return `
+            <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:.5rem;">
+                <div style="width:2rem;height:2rem;border-radius:50%;background:white;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="${t.icon}" style="font-size:.875rem;color:${t.color};"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span class="op-badge ${t.cls}">${t.label}</span>
+                        <span style="font-size:.75rem;color:#9ca3af;">${dataFmt}</span>
+                    </div>
+                    ${detalhes ? `<p style="font-size:.8rem;color:#374151;margin-top:.25rem;">${detalhes}</p>` : ''}
+                    ${op.notas ? `<p style="font-size:.75rem;color:#9ca3af;margin-top:.1rem;font-style:italic;">${op.notas}</p>` : ''}
+                </div>
+            </div>`;
+        }).join('') + `</div>`;
+    }
+
+    // ── EXPORTAR EXCEL (CSV formatado) ──────────────────────────────────────
+    function exportarExcel() {
+        if (!dadosAtual) { if (typeof showWarning === 'function') showWarning('Seleccione um período e aguarde os dados carregarem.'); return; }
+        const r    = dadosAtual.resumo || {};
+        const dias = dadosAtual.grafico_diario || [];
+        const periodoLabel = { semanal: 'Semanal (7 dias)', mensal: 'Mensal (30 dias)', anual: 'Anual (365 dias)' }[periodoAtual] || periodoAtual;
+        const now  = new Date().toLocaleDateString('pt-PT');
+
+        let csv = '\uFEFF'; // BOM para Excel
+        csv += `RELATÓRIO DE ACTIVIDADES — AGROCAUA\n`;
+        csv += `Agricultor:,${nomeAgric}\n`;
+        csv += `Período:,${periodoLabel}\n`;
+        csv += `Gerado em:,${now}\n`;
+        csv += `\n`;
+        csv += `═══ RESUMO ════════════════════\n`;
+        csv += `Total de Leituras de Sensores,${r.total_leituras ?? ''}\n`;
+        csv += `Temperatura Média (°C),${r.temp_media ?? ''}\n`;
+        csv += `Temperatura Máxima (°C),${r.temp_max ?? ''}\n`;
+        csv += `Temperatura Mínima (°C),${r.temp_min ?? ''}\n`;
+        csv += `Humidade Solo Média (%),${r.hum_solo_media ?? ''}\n`;
+        csv += `Pragas Detectadas,${r.pragas_detectadas ?? ''}\n`;
+        csv += `\n`;
+
+        // Atividades
+        const OPS_KEY = 'agrocaua_operations';
+        let ops = [];
+        try { ops = JSON.parse(localStorage.getItem(OPS_KEY)) || []; } catch {}
+        const diasN = { semanal: 7, mensal: 30, anual: 365 }[periodoAtual] || 30;
+        const limite = new Date(new Date() - diasN * 86400000);
+        const opsF = ops.filter(op => { try { return new Date(op.timestamp || op.data) >= limite; } catch { return false; } });
+
+        if (opsF.length) {
+            csv += `═══ ATIVIDADES REGISTADAS ════\n`;
+            csv += `Tipo,Data,Duração (min),Volume (L),Produto,Dose (kg/ha),Notas\n`;
+            opsF.forEach(op => {
+                csv += [op.tipo || '', op.data || '', op.duracao || '', op.volume || '', op.produto || '', op.dose || '', (op.notas || '').replace(/,/g, ';')].join(',') + '\n';
+            });
+            csv += `\n`;
+        }
+
+        csv += `═══ DADOS DIÁRIOS ════════════\n`;
+        csv += `Data,Temperatura (°C),Hum Solo (%),Hum Ar (%),Pressão (hPa),Pragas,Estado\n`;
+        dias.forEach(d => {
+            let estado = 'Normal';
+            if (d.pragas > 0) estado = 'Alerta';
+            else if (d.temp > 35 || d.hum_solo < 20) estado = 'Atenção';
+            csv += [d.data ?? '', d.temp ?? '', d.hum_solo ?? '', d.hum_ar ?? '', d.pressao ?? '', d.pragas ?? 0, estado].join(',') + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `relatorio_${periodoAtual}_${now.replace(/\//g, '-')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showSuccess === 'function') showSuccess('Ficheiro Excel exportado com sucesso!');
+    }
+
+    // ── EXPORTAR PDF ────────────────────────────────────────────────────────
+    function exportarPDF() {
+        if (!dadosAtual) { if (typeof showWarning === 'function') showWarning('Seleccione um período e aguarde os dados carregarem.'); return; }
+        const r    = dadosAtual.resumo || {};
+        const dias = dadosAtual.grafico_diario || [];
+        const periodoLabel = { semanal: 'Semanal — Últimos 7 dias', mensal: 'Mensal — Últimos 30 dias', anual: 'Anual — Últimos 365 dias' }[periodoAtual] || periodoAtual;
+        const now  = new Date().toLocaleDateString('pt-PT');
+
+        // Atividades para PDF
+        const OPS_KEY = 'agrocaua_operations';
+        let ops = [];
+        try { ops = JSON.parse(localStorage.getItem(OPS_KEY)) || []; } catch {}
+        const diasN  = { semanal: 7, mensal: 30, anual: 365 }[periodoAtual] || 30;
+        const limite = new Date(new Date() - diasN * 86400000);
+        const opsF   = ops.filter(op => { try { return new Date(op.timestamp || op.data) >= limite; } catch { return false; } });
+
+        const atividadesHtml = opsF.length ? `
+            <h2 style="color:#374151;font-size:.95rem;margin:1.5rem 0 .5rem;border-bottom:1px solid #e5e7eb;padding-bottom:.3rem;">Atividades Registadas</h2>
+            <table><thead><tr><th>Tipo</th><th>Data</th><th>Detalhes</th><th>Notas</th></tr></thead><tbody>
+            ${opsF.map(op => {
+                const det = [op.duracao ? op.duracao + ' min' : '', op.volume ? op.volume + ' L' : '', op.produto || '', op.dose ? op.dose + ' kg/ha' : ''].filter(Boolean).join(' · ');
+                return `<tr><td>${op.tipo || '--'}</td><td>${op.data || '--'}</td><td>${det || '--'}</td><td style="color:#6b7280;font-style:italic;">${op.notas || ''}</td></tr>`;
+            }).join('')}
+            </tbody></table>` : '';
+
+        const rows = dias.map(d => {
+            let estado = 'Normal'; let estadoCor = '#16a34a';
+            if (d.pragas > 0) { estado = 'Alerta'; estadoCor = '#dc2626'; }
+            else if (d.temp > 35 || d.hum_solo < 20) { estado = 'Atenção'; estadoCor = '#d97706'; }
+            return `<tr><td>${d.data ?? '--'}</td><td>${d.temp ?? '--'}</td><td>${d.hum_solo ?? '--'}</td><td>${d.hum_ar ?? '--'}</td><td>${d.pressao ?? '--'}</td><td>${d.pragas > 0 ? `<span style="color:#dc2626;font-weight:700;">${d.pragas}</span>` : '0'}</td><td style="color:${estadoCor};font-weight:600;">${estado}</td></tr>`;
+        }).join('');
+
+        const win = window.open('', '_blank', 'width=1000,height=800');
+        win.document.write(`<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">
+        <title>Relatório — ${nomeAgric}</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 2rem; color: #111; font-size: 13px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 2px solid #2E8B57; padding-bottom: 1rem; }
+            .logo { font-size: 1.3rem; font-weight: 800; color: #2E8B57; }
+            .logo span { font-size: .75rem; font-weight: 400; color: #6b7280; display: block; }
+            .meta { text-align: right; font-size: .8rem; color: #6b7280; }
+            .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .875rem; margin-bottom: 1.5rem; }
+            .kpi { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem 1rem; }
+            .kpi-val { font-size: 1.5rem; font-weight: 800; color: #111; }
+            .kpi-lbl { font-size: .68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .06em; margin-top: .1rem; }
+            h2 { font-size: .95rem; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: .3rem; margin: 1.25rem 0 .625rem; }
+            table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+            th { background: #2E8B57; color: white; padding: .5rem .75rem; text-align: left; font-weight: 600; }
+            td { padding: .375rem .75rem; border-bottom: 1px solid #e5e7eb; }
+            tr:nth-child(even) td { background: #f9fafb; }
+            .footer { margin-top: 2rem; padding-top: .75rem; border-top: 1px solid #e5e7eb; font-size: .72rem; color: #9ca3af; display: flex; justify-content: space-between; }
+            @media print { .no-print { display: none; } }
+        </style></head><body>
+        <div class="header">
+            <div>
+                <div class="logo">🌾 AgroCaua <span>Sistema de Monitoramento Agrícola</span></div>
+                <div style="margin-top:.5rem;font-size:.9rem;font-weight:700;color:#374151;">${nomeAgric}</div>
+                <div style="font-size:.8rem;color:#6b7280;">Relatório de Actividades — ${periodoLabel}</div>
+            </div>
+            <div class="meta">Gerado em: <strong>${now}</strong></div>
+        </div>
+        <h2>Resumo do Período</h2>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-val">${r.total_leituras ?? '--'}</div><div class="kpi-lbl">Leituras de Sensores</div></div>
+            <div class="kpi"><div class="kpi-val">${r.temp_media ?? '--'}°C</div><div class="kpi-lbl">Temperatura Média</div></div>
+            <div class="kpi"><div class="kpi-val">${r.temp_max ?? '--'}°C</div><div class="kpi-lbl">Temperatura Máxima</div></div>
+            <div class="kpi"><div class="kpi-val">${r.temp_min ?? '--'}°C</div><div class="kpi-lbl">Temperatura Mínima</div></div>
+            <div class="kpi"><div class="kpi-val">${r.hum_solo_media ?? '--'}%</div><div class="kpi-lbl">Humidade Solo Média</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:${(r.pragas_detectadas||0)>0?'#dc2626':'#16a34a'}">${r.pragas_detectadas ?? 0}</div><div class="kpi-lbl">Pragas Detectadas</div></div>
+        </div>
+        ${atividadesHtml}
+        <h2>Dados Diários Detalhados</h2>
+        <table>
+            <thead><tr><th>Data</th><th>Temp (°C)</th><th>Hum Solo (%)</th><th>Hum Ar (%)</th><th>Pressão (hPa)</th><th>Pragas</th><th>Estado</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:1.5rem">Sem dados disponíveis</td></tr>'}</tbody>
+        </table>
+        <div class="footer">
+            <span>AgroCaua — Relatório gerado automaticamente</span>
+            <span>${nomeAgric} | ${periodoLabel} | ${now}</span>
+        </div>
+        <br>
+        <button class="no-print" onclick="window.print()"
+            style="background:#2E8B57;color:white;border:none;padding:.5rem 1.5rem;border-radius:6px;cursor:pointer;font-size:.875rem;font-weight:600;">
+            Imprimir / Guardar como PDF
+        </button>
+        </body></html>`);
+        win.document.close();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { setPeriodo('semanal'); });
+    window.addEventListener('beforeunload', () => { Object.values(rptCharts).forEach(c => { try { c.destroy(); } catch {} }); });
+</script>
+{% endblock %}

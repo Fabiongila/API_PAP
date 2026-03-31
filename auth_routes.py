@@ -1,6 +1,13 @@
+
 from flask import Blueprint, request, jsonify
 from models import db, User, Log
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+import threading
+try:
+    from email_service import send_welcome_email, send_contact_form_confirmation, send_contact_form_to_admin
+    _email_ok = True
+except Exception:
+    _email_ok = False
 
 auth_bp  = Blueprint("auth", __name__, url_prefix="/api")
 blacklist = set()
@@ -30,6 +37,8 @@ def register():
     db.session.add(u)
     db.session.commit()
     add_log("Nova conta registada", f'"{nome}" registou-se', nome)
+    if _email_ok:
+        threading.Thread(target=send_welcome_email, args=(email, nome), daemon=True).start()
     return jsonify({"msg": "Conta criada com sucesso"}), 201
 
 # POST /api/login
@@ -92,3 +101,46 @@ def delete_account():
     db.session.commit()
     add_log("Conta eliminada", f'"{nome}" eliminou a sua conta', nome)
     return jsonify({"msg": "Conta deletada com sucesso"}), 200
+
+
+# POST /api/contacto  — formulário de contacto da landing page
+@auth_bp.route("/contacto", methods=["POST"])
+def contacto():
+    from models import Mensagem
+    d        = request.get_json(silent=True) or {}
+    nome     = (d.get("nome") or "").strip()
+    email    = (d.get("email") or "").strip().lower()
+    telefone = (d.get("telefone") or "").strip()
+    assunto  = (d.get("assunto") or "").strip()
+    mensagem = (d.get("mensagem") or "").strip()
+
+    if not nome or not email or not assunto or not mensagem:
+        return jsonify({"erro": "Nome, email, assunto e mensagem são obrigatórios"}), 400
+
+    # Guardar na base de dados
+    try:
+        msg = Mensagem(
+            user_id=None,
+            nome_contacto=nome,
+            email_contacto=email,
+            telefone=telefone,
+            origem="contacto",
+            assunto=assunto,
+            conteudo=mensagem,
+            prioridade="normal"
+        )
+        db.session.add(msg)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+    add_log("Contacto recebido", f'"{nome}" enviou formulário de contacto: {assunto}', nome)
+
+    if _email_ok:
+        import os
+        admin_email = os.environ.get("SMTP_USER", "")
+        threading.Thread(target=send_contact_form_confirmation, args=(email, nome, assunto), daemon=True).start()
+        if admin_email:
+            threading.Thread(target=send_contact_form_to_admin, args=(admin_email, nome, email, telefone, assunto, mensagem), daemon=True).start()
+
+    return jsonify({"msg": "Mensagem enviada com sucesso! Entraremos em contacto brevemente."}), 200

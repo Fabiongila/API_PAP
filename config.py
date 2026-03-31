@@ -13,16 +13,3 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI    = os.environ.get("DATABASE_URL", "sqlite:///database.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # SMTP — Email notifications
-    SMTP_HOST      = os.environ.get("SMTP_HOST",      "smtp.gmail.com")
-    SMTP_PORT      = int(os.environ.get("SMTP_PORT",  587))
-    SMTP_USER      = os.environ.get("SMTP_USER",      "")
-    SMTP_PASSWORD  = os.environ.get("SMTP_PASSWORD",  "")
-    SMTP_FROM      = os.environ.get("SMTP_FROM",      "")
-    SMTP_FROM_NAME = os.environ.get("SMTP_FROM_NAME", "AgroCaua")
-    SMTP_TLS       = os.environ.get("SMTP_TLS",       "True").lower() == "true"
-    SMTP_SSL       = os.environ.get("SMTP_SSL",       "False").lower() == "true"
-
-    # Admin email (receives contact forms and critical alerts)
-    ADMIN_EMAIL    = os.environ.get("SMTP_USER", "")

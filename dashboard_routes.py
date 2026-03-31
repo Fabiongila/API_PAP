@@ -72,24 +72,6 @@ def config():
     """Configuration page"""
     return render_template('dashboard/config.html')
 
-@dashboard_bp.route('/relatorios')
-@check_token_client_side
-def relatorios():
-    """Farmer reports page"""
-    return render_template('dashboard/relatorios.html')
-
-@dashboard_bp.route('/apoio')
-@check_token_client_side
-def apoio():
-    """Support and complaints page"""
-    return render_template('dashboard/apoio.html')
-
-@dashboard_bp.route('/agronomia')
-@check_token_client_side
-def agronomia():
-    """Agronomic knowledge and recommendations page"""
-    return render_template('dashboard/agronomia.html')
-
 
 # ===============================
 # AUTH ROUTES (Template Rendering)
@@ -121,11 +103,6 @@ def admin_login():
 def admin():
     """Super Admin panel"""
     return render_template('admin/index.html')
-
-@auth_pages_bp.route('/admin/fazenda/<int:fid>')
-def admin_fazenda_detalhes(fid):
-    """Farm details full page"""
-    return render_template('admin/fazenda_detalhes.html', fazenda_id=fid)
 
 @auth_pages_bp.route('/admin/farm')
 def farm_admin():

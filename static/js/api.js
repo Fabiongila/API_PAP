@@ -1,12 +1,9 @@
 /**
  * AgroCaua API Client — v2
  */
-// Se o frontend estiver noutro servidor (ex: XAMPP porta 80),
-// esta linha aponta sempre para o backend Flask na porta 5000.
-// Em produção, mude para o URL do seu servidor: 'https://api.seudominio.com'
-const API_BASE = window.location.port === '5000'
-    ? window.location.origin
-    : 'http://localhost:5000';
+// O Flask serve o frontend e a API a partir da mesma origem,
+// tanto em desenvolvimento local como em produção (Railway).
+const API_BASE = window.location.origin;
 
 function getToken() { return localStorage.getItem('agrocaua_token'); }
 function saveToken(t) { localStorage.setItem('agrocaua_token', t); }

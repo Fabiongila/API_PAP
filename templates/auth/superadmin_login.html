@@ -452,9 +452,7 @@
 </div>
 
 <script>
-    const API_BASE = window.location.port === '5000'
-        ? window.location.origin
-        : 'http://localhost:5000';
+    const API_BASE = window.location.origin;
 
     // ── Verificar se já está autenticado como superadmin
     (function checkExistingSession() {
